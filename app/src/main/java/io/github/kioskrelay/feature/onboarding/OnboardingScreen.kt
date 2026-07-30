@@ -127,7 +127,7 @@ fun OnboardingScreen(
     fun currentStepValid(): Boolean = when (step) {
         1 -> draft.productName.trim().isNotEmpty()
         2 -> isValidDashboardUrl(draft.url, draft.allowHttp)
-        3 -> password.length in 6..64 && password == passwordConfirmation
+        3 -> isOptionalAdministratorPasswordValid(password, passwordConfirmation)
         else -> true
     }
 
@@ -627,16 +627,18 @@ private fun SecurityStep(
     onConfirmationChange: (String) -> Unit,
     onDraftChange: (OnboardingDraft) -> Unit,
 ) {
+    val passwordInvalid =
+        showErrors && !isOptionalAdministratorPasswordValid(password, confirmation)
     SectionTitle(stringResource(R.string.onboarding_security_title))
     Spacer(Modifier.height(20.dp))
     OutlinedTextField(
         value = password,
         onValueChange = onPasswordChange,
-        label = { Text(stringResource(R.string.administrator_password)) },
+        label = { Text(stringResource(R.string.administrator_password_optional)) },
         visualTransformation = PasswordVisualTransformation(),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-        isError = showErrors && password.length !in 6..64,
-        supportingText = { Text(stringResource(R.string.password_rule)) },
+        isError = passwordInvalid,
+        supportingText = { Text(stringResource(R.string.password_optional_rule)) },
         singleLine = true,
         modifier = Modifier
             .fillMaxWidth()
@@ -648,7 +650,7 @@ private fun SecurityStep(
         label = { Text(stringResource(R.string.confirm_password)) },
         visualTransformation = PasswordVisualTransformation(),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-        isError = showErrors && confirmation != password,
+        isError = passwordInvalid,
         supportingText = {
             if (showErrors && confirmation != password) {
                 Text(stringResource(R.string.password_mismatch))
@@ -698,6 +700,13 @@ private fun SecurityStep(
         }
     }
 }
+
+internal fun isOptionalAdministratorPasswordValid(
+    password: String,
+    confirmation: String,
+): Boolean =
+    (password.isEmpty() && confirmation.isEmpty()) ||
+        (password.length in 6..64 && password == confirmation)
 
 @Composable
 private fun SectionTitle(title: String, body: String? = null) {

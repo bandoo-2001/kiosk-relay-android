@@ -32,8 +32,10 @@
     <string name="test_failed">网页无法加载，请检查地址和网络。</string>
     <string name="onboarding_security_title">安全与确认</string>
     <string name="administrator_password">管理员密码</string>
+    <string name="administrator_password_optional">管理员密码（可选）</string>
     <string name="confirm_password">确认密码</string>
     <string name="password_rule">使用 6–64 个字符，该密码用于保护全部设置。</string>
+    <string name="password_optional_rule">可留空；如需保护设置，请使用 6–64 个字符。</string>
     <string name="boot_launch">设备开机后启动</string>
     <string name="boot_launch_hint">后台自动启动的可靠性取决于 Android 版本和设备厂商策略。</string>
     <string name="boot_delay">启动延迟：%1$d 秒</string>

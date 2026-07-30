@@ -70,11 +70,30 @@ fun KioskScreen(
 ) {
     var state by remember { mutableStateOf<KioskUiState>(KioskUiState.Starting) }
     var showAuthentication by rememberSaveable { mutableStateOf(false) }
+    var checkingAdminRequirement by remember { mutableStateOf(false) }
     val entryDetector = remember { AdminEntryDetector() }
     val focusRequester = remember { FocusRequester() }
+    val scope = rememberCoroutineScope()
 
-    DisposableEffect(registerTvAdminEntryHandler) {
-        registerTvAdminEntryHandler { showAuthentication = true }
+    val requestAdminEntry: () -> Unit = {
+        if (!checkingAdminRequirement) {
+            checkingAdminRequirement = true
+            scope.launch {
+                val passwordConfigured = runCatching {
+                    authenticator.hasPassword()
+                }.getOrDefault(true)
+                checkingAdminRequirement = false
+                if (passwordConfigured) {
+                    showAuthentication = true
+                } else {
+                    onOpenSettings()
+                }
+            }
+        }
+    }
+
+    DisposableEffect(registerTvAdminEntryHandler, authenticator, onOpenSettings) {
+        registerTvAdminEntryHandler(requestAdminEntry)
         onDispose { registerTvAdminEntryHandler(null) }
     }
 
@@ -90,7 +109,7 @@ fun KioskScreen(
             .focusable()
             .onPreviewKeyEvent { event ->
                 entryDetector.registerKeyEvent(event.nativeKeyEvent).also { matched ->
-                    if (matched) showAuthentication = true
+                    if (matched) requestAdminEntry()
                 }
             },
     ) {
@@ -117,7 +136,7 @@ fun KioskScreen(
                 .size(72.dp)
                 .pointerInput(entryDetector) {
                     detectTapGestures {
-                        if (entryDetector.registerTap()) showAuthentication = true
+                        if (entryDetector.registerTap()) requestAdminEntry()
                     }
                 },
         )

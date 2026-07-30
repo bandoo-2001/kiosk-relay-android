@@ -598,17 +598,21 @@ fun KioskRelayApp(
                                 return@launch
                             }
 
-                            val passwordChars = password.toCharArray()
-                            val passwordResult = try {
-                                container.adminAuthenticator.setPassword(passwordChars)
-                            } finally {
-                                passwordChars.fill('\u0000')
-                            }
-                            if (passwordResult !is PasswordSetResult.Success) {
-                                snackbarHostState.showSnackbar(
-                                    failureMessage.format("Invalid administrator password"),
-                                )
-                                return@launch
+                            if (password.isEmpty()) {
+                                container.adminAuthenticator.clear()
+                            } else {
+                                val passwordChars = password.toCharArray()
+                                val passwordResult = try {
+                                    container.adminAuthenticator.setPassword(passwordChars)
+                                } finally {
+                                    passwordChars.fill('\u0000')
+                                }
+                                if (passwordResult !is PasswordSetResult.Success) {
+                                    snackbarHostState.showSnackbar(
+                                        failureMessage.format("Invalid administrator password"),
+                                    )
+                                    return@launch
+                                }
                             }
 
                             val storeResult = runCatching {

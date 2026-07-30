@@ -27,7 +27,7 @@ class OnboardingScreenTest {
     val composeRule = createComposeRule()
 
     @Test
-    fun fourStepFlow_acceptsUntestedValidPageAndFinishes() {
+    fun fourStepFlow_acceptsUntestedValidPageAndFinishesWithoutPassword() {
         val finished = AtomicBoolean(false)
         setScreen { finished.set(true) }
 
@@ -37,9 +37,6 @@ class OnboardingScreenTest {
         composeRule.onNodeWithTag("onboarding-url")
             .performTextInput("https://display.example.com/dashboard")
         composeRule.onNodeWithTag(NEXT).performClick()
-        composeRule.onNodeWithTag("onboarding-password").performTextInput("secure1")
-        composeRule.onNodeWithTag("onboarding-password-confirmation")
-            .performTextInput("secure1")
         composeRule.onNodeWithTag(NEXT).performClick()
 
         composeRule.waitUntil(timeoutMillis = 2_000) { finished.get() }

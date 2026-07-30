@@ -32,8 +32,10 @@
     <string name="test_failed">The webpage could not be loaded. Check the address and network.</string>
     <string name="onboarding_security_title">Security and confirmation</string>
     <string name="administrator_password">Administrator password</string>
+    <string name="administrator_password_optional">Administrator password (optional)</string>
     <string name="confirm_password">Confirm password</string>
     <string name="password_rule">Use 6–64 characters. This password protects all settings.</string>
+    <string name="password_optional_rule">Leave blank, or use 6–64 characters to protect settings.</string>
     <string name="boot_launch">Launch after device boot</string>
     <string name="boot_launch_hint">Reliable background launch depends on the Android version and device vendor.</string>
     <string name="boot_delay">Boot delay: %1$d seconds</string>

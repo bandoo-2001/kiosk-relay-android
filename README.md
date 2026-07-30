@@ -46,6 +46,8 @@ remaining Android-version matrix are still required.
   Back navigation
 - Hidden administrator entry: five top-left taps within three seconds, or the
   TV sequence `Up Up Down Down Left Right Left Right OK`
+- The onboarding administrator password is optional. Without one, the hidden
+  entry opens settings directly, where a password can be added later.
 - Five settings groups, password change, reload, cache/Cookie/site-data
   clearing, reset, and diagnostics export
 - Versioned `.kioskrelay` ZIP import/export with size, schema, image, and path
