@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="onboarding_welcome_title">把这台设备变成稳定的网页大屏</string>
+    <string name="onboarding_welcome_title">把这台设备变成稳定的网页终端</string>
     <string name="onboarding_welcome_body">配置受信任网页、动态品牌、显示方式和管理员保护，无需重新编译 APK。</string>
     <string name="onboarding_language">显示语言</string>
     <string name="language_system">跟随系统</string>
@@ -41,7 +41,7 @@
     <string name="boot_delay">启动延迟：%1$d 秒</string>
     <string name="previous">上一步</string>
     <string name="next">下一步</string>
-    <string name="finish_configuration">保存并进入大屏</string>
+    <string name="finish_configuration">保存并进入</string>
     <string name="field_required">此项不能为空。</string>
     <string name="invalid_url">请输入有效 HTTPS 地址，或显式开启 HTTP。</string>
     <string name="password_mismatch">两次输入的密码不一致。</string>

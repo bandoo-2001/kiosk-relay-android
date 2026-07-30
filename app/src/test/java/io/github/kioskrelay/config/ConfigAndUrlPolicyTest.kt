@@ -134,7 +134,7 @@ class ConfigAndUrlPolicyTest {
         locale = AppLocale.ZH_CN,
         onboardingCompleted = true,
         branding = ConfigDefaults.config.branding.copy(
-            productName = "展厅大屏",
+            productName = "展厅终端",
             loadingMessage = "加载中",
         ),
         webView = ConfigDefaults.config.webView.copy(

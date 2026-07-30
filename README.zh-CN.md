@@ -12,7 +12,7 @@ KioskRelay 是一款面向工业平板、数字标牌、手机和基础 Android 
 - 版本：`0.4.0`
 - 最低系统：Android 7.0 / API 24
 - `targetSdk=36`、`compileSdk=36.1`
-- 工具链：JDK 17、Gradle 9.4.1、AGP 9.2.1
+- 工具链：Gradle 9.5.0、AGP 9.3.1；Wrapper 可由 JDK 17 启动，Gradle Daemon 固定使用 Java 21
 - 技术栈：Jetpack Compose、Proto DataStore、AndroidX WebKit
 - 语言：跟随系统、简体中文、英文
 
@@ -57,7 +57,8 @@ WebView 53 虽能加载主文档，但无法解析 Vite 8 客户端代码并报
 
 ## 构建
 
-准备 JDK 17 和 Android SDK 36.1，然后执行：
+准备 Android SDK 36.1 和 Java 21；也可以使用 JDK 17 启动 Wrapper，并允许 Gradle
+根据 `gradle/gradle-daemon-jvm.properties` 自动配置 Java 21。然后执行：
 
 ```bash
 ./gradlew test lint assembleDebug assembleRelease assembleDebugAndroidTest

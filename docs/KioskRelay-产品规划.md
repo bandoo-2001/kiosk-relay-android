@@ -631,6 +631,7 @@ MVP 暂不包含：
 | `assembleRelease` | 通过，产出未签名 Release APK；尚未在 API 24 安装 |
 | `assembleDebugAndroidTest` | 通过，13 个仪器测试用例可编译为测试 APK |
 | 完整构建门禁 | `ec3c6b5` 干净副本、Gradle 9.4.1 / AGP 9.2.1 下，58 个 JVM + 13 个 API 24 仪器用例全部通过，`BUILD SUCCESSFUL in 4m 52s` |
+| 当前升级工具链 | Gradle 9.5.0 / AGP 9.3.1、JDK 17 Launcher / Java 21 Daemon 下，58 个 JVM + 13 个 API 24 仪器用例通过，Lint 0 error、46 warning，增量门禁 `BUILD SUCCESSFUL in 30s` |
 | API 24 仪器测试 | 最终全量运行 `13/13` 通过，0 skipped、0 failed；其中部分 WebView 场景是合成回调 |
 | API 24 Debug 首启与管理员 | 四步首启、HTTP 确认、DataStore 重启、返回键、触屏隐藏入口和实际 keyevent TV 序列通过；不等同 TV 硬件验收 |
 | API 24 展示策略 | 首次进入的横屏、全屏、常亮通过；从设置返回或维护重载后系统栏未重新隐藏，实测不通过 |

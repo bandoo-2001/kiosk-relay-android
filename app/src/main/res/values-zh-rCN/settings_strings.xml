@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="settings_title">大屏设置</string>
+    <string name="settings_title">设置</string>
     <string name="settings_brand">品牌外观</string>
     <string name="settings_web">网页与显示</string>
     <string name="settings_runtime">终端运行</string>

@@ -13,7 +13,8 @@ Android application.
 - Version: `0.4.0`
 - Minimum Android version: Android 7.0 / API 24
 - Target SDK: 36; compile SDK: 36.1
-- Toolchain: JDK 17, Gradle 9.4.1, AGP 9.2.1
+- Toolchain: Gradle 9.5.0 and AGP 9.3.1; the wrapper can start on JDK 17,
+  while the Gradle daemon is pinned to Java 21
 - UI/data/runtime: Jetpack Compose, Proto DataStore, AndroidX WebKit
 - Languages: system default, Simplified Chinese, and English
 
@@ -72,7 +73,9 @@ repository; it is content loaded by the configured WebView.
 
 ## Build
 
-Install JDK 17 and Android SDK 36.1, then run:
+Install Android SDK 36.1 and Java 21. Alternatively, start the wrapper with
+JDK 17 and allow Gradle to provision Java 21 according to
+`gradle/gradle-daemon-jvm.properties`. Then run:
 
 ```bash
 ./gradlew test lint assembleDebug assembleRelease assembleDebugAndroidTest
