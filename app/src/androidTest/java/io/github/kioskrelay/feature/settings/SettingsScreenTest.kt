@@ -149,12 +149,18 @@ class SettingsScreenTest {
             val brand = composeRule.onNodeWithTag("settings-section-brand")
             val web = composeRule.onNodeWithTag("settings-section-web")
 
-            // The first hardware key leaves touch mode and establishes the initial focus.
-            instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_RIGHT)
-            composeRule.waitUntil(timeoutMillis = 2_000) {
+            fun brandIsFocused(): Boolean =
                 brand.fetchSemanticsNode().config.getOrElse(
                     androidx.compose.ui.semantics.SemanticsProperties.Focused,
                 ) { false }
+
+            // Touch devices need one key to leave touch mode. A real TV starts outside
+            // touch mode, so the requested initial focus is already active.
+            if (!brandIsFocused()) {
+                instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_RIGHT)
+                composeRule.waitUntil(timeoutMillis = 2_000) {
+                    brandIsFocused()
+                }
             }
             brand.assertIsFocused()
 

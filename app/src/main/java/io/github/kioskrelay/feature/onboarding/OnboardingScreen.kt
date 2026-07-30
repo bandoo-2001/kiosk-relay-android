@@ -367,10 +367,9 @@ private fun WelcomeRail(currentStep: Int, modifier: Modifier = Modifier) {
 
 @Composable
 private fun StepIndicator(step: Int) {
-    FlowRow(
+    Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         repeat(4) { index ->
             Box(
@@ -766,9 +765,10 @@ private fun <T> ChoiceRow(
     selected: T,
     onSelected: (T) -> Unit,
 ) {
-    Row(
+    FlowRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         entries.forEach { (value, label) ->
             OutlinedButton(

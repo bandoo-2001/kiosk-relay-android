@@ -69,6 +69,24 @@ class OnboardingScreenTest {
         ).assertExists()
     }
 
+    @Test
+    fun welcomeStep_exposesEverySupportedLanguage() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        setScreen()
+
+        listOf(
+            R.string.language_system,
+            R.string.language_chinese,
+            R.string.language_english,
+            R.string.language_chinese_traditional,
+            R.string.language_spanish,
+            R.string.language_japanese,
+            R.string.language_korean,
+        ).forEach { label ->
+            composeRule.onNodeWithText(context.getString(label)).assertExists()
+        }
+    }
+
     private fun setScreen(onFinish: () -> Unit = {}) {
         composeRule.setContent {
             var draft by remember { mutableStateOf(OnboardingDraft()) }
