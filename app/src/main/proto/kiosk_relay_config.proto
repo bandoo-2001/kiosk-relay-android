@@ -11,6 +11,11 @@ enum AppLocaleProto {
   APP_LOCALE_SYSTEM = 0;
   APP_LOCALE_ZH_CN = 1;
   APP_LOCALE_EN = 2;
+  APP_LOCALE_ZH_TW = 3;
+  APP_LOCALE_ES = 4;
+  APP_LOCALE_JA = 7;
+  APP_LOCALE_KO = 8;
+  reserved 5, 6, 9, 10;
 }
 
 enum ScreenOrientationProto {

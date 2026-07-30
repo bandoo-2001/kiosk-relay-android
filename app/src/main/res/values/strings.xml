@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">KioskRelay</string>
-    <string name="default_product_name">KioskRelay</string>
+    <string name="app_name" translatable="false">KioskRelay</string>
+    <string name="default_product_name" translatable="false">KioskRelay</string>
     <string name="default_offline_message">Network unavailable. Reconnecting…</string>
+    <string name="brand_default_error_message">The webpage is temporarily unavailable. Please try again.</string>
 </resources>

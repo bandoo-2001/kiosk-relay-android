@@ -58,6 +58,13 @@ android {
         }
     }
 
+    // All in-app selectable languages must remain available in every bundle install.
+    bundle {
+        language {
+            enableSplit = false
+        }
+    }
+
     testOptions {
         unitTests.isIncludeAndroidResources = true
     }
@@ -99,6 +106,7 @@ dependencies {
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.compose.foundation)
     implementation(libs.compose.material3)
+    implementation(libs.compose.material.icons.extended)
 
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 

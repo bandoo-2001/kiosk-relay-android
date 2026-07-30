@@ -1,15 +1,21 @@
 package io.github.kioskrelay.feature.settings
 
+import android.content.Context
+import android.content.res.Configuration
+import android.content.res.Resources
 import android.net.Uri
+import androidx.annotation.StringRes
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -18,15 +24,37 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Build
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Cookie
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.DeleteSweep
+import androidx.compose.material.icons.outlined.FileDownload
+import androidx.compose.material.icons.outlined.FileUpload
+import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.PlayCircle
+import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.Restore
+import androidx.compose.material.icons.outlined.Security
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -43,10 +71,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -57,8 +87,13 @@ import io.github.kioskrelay.R
 import io.github.kioskrelay.config.AppLocale
 import io.github.kioskrelay.config.KioskRelayConfig
 import io.github.kioskrelay.config.ScreenOrientation
+import io.github.kioskrelay.data.BrandImageImporter
+import io.github.kioskrelay.data.BrandImageKind
+import io.github.kioskrelay.ui.BrandLogo
+import io.github.kioskrelay.ui.rememberBrandImage
 import io.github.kioskrelay.ui.theme.KioskBackground
 import io.github.kioskrelay.ui.theme.KioskSurface
+import java.util.Locale
 import kotlin.math.roundToInt
 
 enum class SettingsSection {
@@ -88,6 +123,9 @@ fun SettingsScreen(
     onDismiss: () -> Unit,
     onLogoSelected: (Uri, (String?) -> Unit) -> Unit,
     onSplashSelected: (Uri, (String?) -> Unit) -> Unit,
+    onLogoRemoved: ((Boolean) -> Unit) -> Unit,
+    onSplashRemoved: ((Boolean) -> Unit) -> Unit,
+    imageImporter: BrandImageImporter,
     onChangePassword: (String) -> Unit,
     onMaintenanceAction: (MaintenanceAction, KioskRelayConfig) -> Unit,
     operationInProgress: Boolean = false,
@@ -103,6 +141,7 @@ fun SettingsScreen(
     // An in-flight coroutine belongs to the current composition and must not leave a restored
     // screen permanently disabled after Activity/process recreation.
     var pendingImageImports by remember { mutableIntStateOf(0) }
+    var brandImageRevision by remember { mutableIntStateOf(0) }
     val interactionBlocked = operationInProgress || pendingImageImports > 0
 
     BackHandler {
@@ -115,6 +154,7 @@ fun SettingsScreen(
             onLogoSelected(uri) { relativePath ->
                 pendingImageImports = (pendingImageImports - 1).coerceAtLeast(0)
                 if (relativePath != null) {
+                    brandImageRevision++
                     draft = draft.copy(
                         branding = draft.branding.copy(logoRelativePath = relativePath),
                     )
@@ -128,11 +168,33 @@ fun SettingsScreen(
             onSplashSelected(uri) { relativePath ->
                 pendingImageImports = (pendingImageImports - 1).coerceAtLeast(0)
                 if (relativePath != null) {
+                    brandImageRevision++
                     draft = draft.copy(
                         branding = draft.branding.copy(splashRelativePath = relativePath),
                     )
                 }
             }
+        }
+    }
+    fun removeBrandImage(kind: BrandImageKind) {
+        pendingImageImports++
+        val onRemoved: (Boolean) -> Unit = { removed ->
+            pendingImageImports = (pendingImageImports - 1).coerceAtLeast(0)
+            if (removed) {
+                brandImageRevision++
+                draft = draft.copy(
+                    branding = when (kind) {
+                        BrandImageKind.LOGO ->
+                            draft.branding.copy(logoRelativePath = null)
+                        BrandImageKind.SPLASH ->
+                            draft.branding.copy(splashRelativePath = null)
+                    },
+                )
+            }
+        }
+        when (kind) {
+            BrandImageKind.LOGO -> onLogoRemoved(onRemoved)
+            BrandImageKind.SPLASH -> onSplashRemoved(onRemoved)
         }
     }
 
@@ -156,6 +218,8 @@ fun SettingsScreen(
                     onClick = onDismiss,
                     enabled = !interactionBlocked,
                 ) {
+                    Icon(Icons.Outlined.Close, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
                     Text(stringResource(R.string.cancel))
                 }
                 Spacer(Modifier.width(12.dp))
@@ -164,6 +228,8 @@ fun SettingsScreen(
                     enabled = !interactionBlocked,
                     modifier = Modifier.testTag("settings-save"),
                 ) {
+                    Icon(Icons.Outlined.Check, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
                     Text(stringResource(R.string.save_and_close))
                 }
             }
@@ -196,6 +262,10 @@ fun SettingsScreen(
                         },
                         onChooseLogo = { logoPicker.launch(arrayOf("image/*")) },
                         onChooseSplash = { splashPicker.launch(arrayOf("image/*")) },
+                        onRemoveLogo = { removeBrandImage(BrandImageKind.LOGO) },
+                        onRemoveSplash = { removeBrandImage(BrandImageKind.SPLASH) },
+                        imageImporter = imageImporter,
+                        brandImageRevision = brandImageRevision,
                         imageImportInProgress = pendingImageImports > 0,
                         operationInProgress = operationInProgress,
                         onPasswordClick = { passwordDialog = true },
@@ -232,6 +302,10 @@ fun SettingsScreen(
                         },
                         onChooseLogo = { logoPicker.launch(arrayOf("image/*")) },
                         onChooseSplash = { splashPicker.launch(arrayOf("image/*")) },
+                        onRemoveLogo = { removeBrandImage(BrandImageKind.LOGO) },
+                        onRemoveSplash = { removeBrandImage(BrandImageKind.SPLASH) },
+                        imageImporter = imageImporter,
+                        brandImageRevision = brandImageRevision,
                         imageImportInProgress = pendingImageImports > 0,
                         operationInProgress = operationInProgress,
                         onPasswordClick = { passwordDialog = true },
@@ -307,11 +381,11 @@ private fun SettingsNavigation(
     horizontal: Boolean = false,
 ) {
     val entries = listOf(
-        SettingsSection.BRAND to R.string.settings_brand,
-        SettingsSection.WEB to R.string.settings_web,
-        SettingsSection.RUNTIME to R.string.settings_runtime,
-        SettingsSection.SECURITY to R.string.settings_security,
-        SettingsSection.MAINTENANCE to R.string.settings_maintenance,
+        Triple(SettingsSection.BRAND, R.string.settings_brand, Icons.Outlined.Palette),
+        Triple(SettingsSection.WEB, R.string.settings_web, Icons.Outlined.Language),
+        Triple(SettingsSection.RUNTIME, R.string.settings_runtime, Icons.Outlined.PlayCircle),
+        Triple(SettingsSection.SECURITY, R.string.settings_security, Icons.Outlined.Security),
+        Triple(SettingsSection.MAINTENANCE, R.string.settings_maintenance, Icons.Outlined.Build),
     )
     val focusRequesters = remember {
         List(entries.size) { FocusRequester() }
@@ -327,7 +401,7 @@ private fun SettingsNavigation(
                 .padding(8.dp),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            entries.forEachIndexed { index, (section, title) ->
+            entries.forEachIndexed { index, (section, title, icon) ->
                 OutlinedButton(
                     onClick = { onSelected(section) },
                     modifier = Modifier
@@ -347,6 +421,8 @@ private fun SettingsNavigation(
                             }
                         },
                 ) {
+                    Icon(icon, contentDescription = null)
+                    Spacer(Modifier.width(6.dp))
                     Text(stringResource(title), maxLines = 1)
                 }
             }
@@ -358,15 +434,13 @@ private fun SettingsNavigation(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            entries.forEachIndexed { index, (section, title) ->
+            entries.forEachIndexed { index, (section, title, icon) ->
                 val selectedBackground = if (section == selected) {
                     MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
                 } else {
                     Color.Transparent
                 }
-                Text(
-                    text = stringResource(title),
-                    fontWeight = if (section == selected) FontWeight.Bold else FontWeight.Normal,
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag("settings-section-${section.name.lowercase()}")
@@ -386,7 +460,16 @@ private fun SettingsNavigation(
                         .background(selectedBackground, RoundedCornerShape(12.dp))
                         .clickable { onSelected(section) }
                         .padding(16.dp),
-                )
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Icon(icon, contentDescription = null)
+                    Text(
+                        text = stringResource(title),
+                        fontWeight =
+                            if (section == selected) FontWeight.Bold else FontWeight.Normal,
+                    )
+                }
             }
         }
     }
@@ -399,6 +482,10 @@ private fun SettingsContent(
     onDraftChange: (KioskRelayConfig) -> Unit,
     onChooseLogo: () -> Unit,
     onChooseSplash: () -> Unit,
+    onRemoveLogo: () -> Unit,
+    onRemoveSplash: () -> Unit,
+    imageImporter: BrandImageImporter,
+    brandImageRevision: Int,
     imageImportInProgress: Boolean,
     operationInProgress: Boolean,
     onPasswordClick: () -> Unit,
@@ -417,6 +504,10 @@ private fun SettingsContent(
                 onDraftChange,
                 onChooseLogo,
                 onChooseSplash,
+                onRemoveLogo,
+                onRemoveSplash,
+                imageImporter,
+                brandImageRevision,
                 imageImportInProgress,
                 operationInProgress,
             )
@@ -438,9 +529,29 @@ private fun BrandSettings(
     onDraftChange: (KioskRelayConfig) -> Unit,
     onChooseLogo: () -> Unit,
     onChooseSplash: () -> Unit,
+    onRemoveLogo: () -> Unit,
+    onRemoveSplash: () -> Unit,
+    imageImporter: BrandImageImporter,
+    brandImageRevision: Int,
     imageImportInProgress: Boolean,
     operationInProgress: Boolean,
 ) {
+    val context = LocalContext.current
+    val defaultLoadingMessage = localizedString(
+        context = context,
+        locale = draft.locale,
+        resourceId = R.string.default_loading_message,
+    )
+    val defaultOfflineMessage = localizedString(
+        context = context,
+        locale = draft.locale,
+        resourceId = R.string.default_offline_message,
+    )
+    val defaultErrorMessage = localizedString(
+        context = context,
+        locale = draft.locale,
+        resourceId = R.string.brand_default_error_message,
+    )
     SettingsHeader(R.string.settings_brand)
     OutlinedTextField(
         value = draft.branding.productName,
@@ -464,42 +575,67 @@ private fun BrandSettings(
         onDraftChange(draft.copy(branding = draft.branding.copy(backgroundColorArgb = it)))
     }
     OutlinedTextField(
-        value = draft.branding.loadingMessage,
+        value = draft.branding.loadingMessage.ifBlank { defaultLoadingMessage },
         onValueChange = {
             onDraftChange(draft.copy(branding = draft.branding.copy(loadingMessage = it.take(160))))
         },
         label = { Text(stringResource(R.string.loading_message)) },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("settings-loading-message"),
     )
     OutlinedTextField(
-        value = draft.branding.offlineMessage,
+        value = draft.branding.offlineMessage.ifBlank { defaultOfflineMessage },
         onValueChange = {
             onDraftChange(draft.copy(branding = draft.branding.copy(offlineMessage = it.take(160))))
         },
         label = { Text(stringResource(R.string.offline_message)) },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("settings-offline-message"),
     )
     OutlinedTextField(
-        value = draft.branding.errorMessage,
+        value = draft.branding.errorMessage.ifBlank { defaultErrorMessage },
         onValueChange = {
             onDraftChange(draft.copy(branding = draft.branding.copy(errorMessage = it.take(160))))
         },
         label = { Text(stringResource(R.string.error_message)) },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("settings-error-message"),
     )
-    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        OutlinedButton(
-            onClick = onChooseLogo,
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        BrandImagePreview(
+            title = stringResource(R.string.logo_preview),
+            branding = draft.branding,
+            imageImporter = imageImporter,
+            imageRevision = brandImageRevision,
+            kind = BrandImageKind.LOGO,
+            hasCustomImage = draft.branding.logoRelativePath != null,
+            onChoose = onChooseLogo,
+            onRemove = onRemoveLogo,
             enabled = !imageImportInProgress && !operationInProgress,
-        ) {
-            Text(stringResource(R.string.choose_logo))
-        }
-        OutlinedButton(
-            onClick = onChooseSplash,
+            modifier = Modifier
+                .weight(1f)
+                .testTag("settings-logo-preview"),
+        )
+        BrandImagePreview(
+            title = stringResource(R.string.splash_preview),
+            branding = draft.branding,
+            imageImporter = imageImporter,
+            imageRevision = brandImageRevision,
+            kind = BrandImageKind.SPLASH,
+            hasCustomImage = draft.branding.splashRelativePath != null,
+            onChoose = onChooseSplash,
+            onRemove = onRemoveSplash,
             enabled = !imageImportInProgress && !operationInProgress,
-        ) {
-            Text(stringResource(R.string.choose_splash_background))
-        }
+            modifier = Modifier
+                .weight(1f)
+                .testTag("settings-splash-preview"),
+        )
     }
     if (imageImportInProgress) {
         Text(
@@ -507,6 +643,130 @@ private fun BrandSettings(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
+}
+
+@Composable
+private fun BrandImagePreview(
+    title: String,
+    branding: io.github.kioskrelay.config.BrandingConfig,
+    imageImporter: BrandImageImporter,
+    imageRevision: Int,
+    kind: BrandImageKind,
+    hasCustomImage: Boolean,
+    onChoose: () -> Unit,
+    onRemove: () -> Unit,
+    enabled: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val image = when (kind) {
+        BrandImageKind.LOGO -> null
+        BrandImageKind.SPLASH -> rememberBrandImage(
+            importer = imageImporter,
+            relativePath = branding.splashRelativePath,
+            imageRevision = imageRevision,
+        )
+    }
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.34f),
+        ),
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text(title, fontWeight = FontWeight.SemiBold)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(150.dp)
+                    .background(
+                        Color(branding.backgroundColorArgb),
+                        RoundedCornerShape(10.dp),
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                when {
+                    kind == BrandImageKind.LOGO -> BrandLogo(
+                        branding = branding,
+                        imageImporter = imageImporter,
+                        imageRevision = imageRevision,
+                    )
+                    image != null -> Image(
+                        bitmap = image,
+                        contentDescription = title,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                    else -> Text(
+                        stringResource(R.string.default_appearance),
+                        color = Color.White.copy(alpha = 0.78f),
+                    )
+                }
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                OutlinedButton(
+                    onClick = onChoose,
+                    enabled = enabled,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Icon(Icons.Outlined.Image, contentDescription = null)
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        stringResource(
+                            if (kind == BrandImageKind.LOGO) {
+                                R.string.choose_logo
+                            } else {
+                                R.string.choose_splash_background
+                            },
+                        ),
+                        maxLines = 1,
+                    )
+                }
+                OutlinedButton(
+                    onClick = onRemove,
+                    enabled = enabled && hasCustomImage,
+                    modifier = Modifier
+                        .weight(1f)
+                        .testTag(
+                            if (kind == BrandImageKind.LOGO) {
+                                "settings-remove-logo"
+                            } else {
+                                "settings-remove-splash"
+                            },
+                        ),
+                ) {
+                    Icon(Icons.Outlined.Delete, contentDescription = null)
+                    Spacer(Modifier.width(6.dp))
+                    Text(stringResource(R.string.remove_image), maxLines = 1)
+                }
+            }
+        }
+    }
+}
+
+internal fun localizedString(
+    context: Context,
+    locale: AppLocale,
+    @StringRes resourceId: Int,
+): String {
+    val selectedLocale = when (locale) {
+        AppLocale.SYSTEM -> Resources.getSystem().configuration.locales[0]
+        AppLocale.ZH_CN -> Locale.SIMPLIFIED_CHINESE
+        AppLocale.EN -> Locale.ENGLISH
+        AppLocale.ZH_TW -> Locale.TRADITIONAL_CHINESE
+        AppLocale.ES -> Locale.forLanguageTag("es")
+        AppLocale.JA -> Locale.JAPANESE
+        AppLocale.KO -> Locale.KOREAN
+    }
+    val configuration = Configuration(context.resources.configuration).apply {
+        setLocale(selectedLocale)
+    }
+    return context.createConfigurationContext(configuration).getString(resourceId)
 }
 
 @Composable
@@ -653,6 +913,8 @@ private fun SecuritySettings(
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
     Button(onClick = onPasswordClick) {
+        Icon(Icons.Outlined.Lock, contentDescription = null)
+        Spacer(Modifier.width(8.dp))
         Text(stringResource(R.string.change_password))
     }
     Spacer(Modifier.height(12.dp))
@@ -662,11 +924,19 @@ private fun SecuritySettings(
             AppLocale.SYSTEM to stringResource(R.string.language_system),
             AppLocale.ZH_CN to stringResource(R.string.language_chinese),
             AppLocale.EN to stringResource(R.string.language_english),
+            AppLocale.ZH_TW to stringResource(R.string.language_chinese_traditional),
+            AppLocale.ES to stringResource(R.string.language_spanish),
+            AppLocale.JA to stringResource(R.string.language_japanese),
+            AppLocale.KO to stringResource(R.string.language_korean),
         ),
         selected = draft.locale,
     ) {
         onDraftChange(draft.copy(locale = it))
     }
+    Text(
+        stringResource(R.string.language_applies_after_save),
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 }
 
 @Composable
@@ -676,23 +946,56 @@ private fun MaintenanceSettings(
 ) {
     SettingsHeader(R.string.settings_maintenance)
     val actions = listOf(
-        MaintenanceAction.RELOAD to R.string.reload_page,
-        MaintenanceAction.CLEAR_CACHE to R.string.clear_cache,
-        MaintenanceAction.CLEAR_COOKIES to R.string.clear_cookies,
-        MaintenanceAction.CLEAR_WEB_DATA to R.string.clear_web_data,
-        MaintenanceAction.EXPORT_CONFIG to R.string.export_configuration,
-        MaintenanceAction.IMPORT_CONFIG to R.string.import_configuration,
-        MaintenanceAction.VIEW_DIAGNOSTICS to R.string.view_diagnostics,
-        MaintenanceAction.EXPORT_DIAGNOSTICS to R.string.export_diagnostics,
-        MaintenanceAction.RESET_DEFAULTS to R.string.restore_defaults,
+        Triple(MaintenanceAction.RELOAD, R.string.reload_page, Icons.Outlined.Refresh),
+        Triple(MaintenanceAction.CLEAR_CACHE, R.string.clear_cache, Icons.Outlined.DeleteSweep),
+        Triple(MaintenanceAction.CLEAR_COOKIES, R.string.clear_cookies, Icons.Outlined.Cookie),
+        Triple(MaintenanceAction.CLEAR_WEB_DATA, R.string.clear_web_data, Icons.Outlined.Storage),
+        Triple(
+            MaintenanceAction.EXPORT_CONFIG,
+            R.string.export_configuration,
+            Icons.Outlined.FileUpload,
+        ),
+        Triple(
+            MaintenanceAction.IMPORT_CONFIG,
+            R.string.import_configuration,
+            Icons.Outlined.FileDownload,
+        ),
+        Triple(
+            MaintenanceAction.VIEW_DIAGNOSTICS,
+            R.string.view_diagnostics,
+            Icons.Outlined.Info,
+        ),
+        Triple(
+            MaintenanceAction.EXPORT_DIAGNOSTICS,
+            R.string.export_diagnostics,
+            Icons.Outlined.Share,
+        ),
+        Triple(MaintenanceAction.RESET_DEFAULTS, R.string.restore_defaults, Icons.Outlined.Restore),
     )
-    actions.forEach { (action, label) ->
-        OutlinedButton(
-            onClick = { onAction(action) },
-            enabled = enabled,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(stringResource(label))
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val columnCount = if (maxWidth >= 600.dp) 2 else 1
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            actions.chunked(columnCount).forEach { rowActions ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    rowActions.forEach { (action, label, icon) ->
+                        OutlinedButton(
+                            onClick = { onAction(action) },
+                            enabled = enabled,
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Icon(icon, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(label))
+                        }
+                    }
+                    repeat(columnCount - rowActions.size) {
+                        Spacer(Modifier.weight(1f))
+                    }
+                }
+            }
         }
     }
 }
@@ -754,14 +1057,15 @@ private fun <T> ChoiceRow(
     selected: T,
     onSelected: (T) -> Unit,
 ) {
-    Row(
+    FlowRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         entries.forEach { (value, label) ->
             OutlinedButton(
                 onClick = { onSelected(value) },
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.widthIn(min = 140.dp),
             ) {
                 Text(if (selected == value) "✓ $label" else label)
             }

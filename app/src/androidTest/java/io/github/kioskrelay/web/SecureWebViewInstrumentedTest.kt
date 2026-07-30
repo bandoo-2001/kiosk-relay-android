@@ -153,6 +153,103 @@ class SecureWebViewInstrumentedTest {
     }
 
     @Test
+    fun subresourceSslError_whileMainPageIsLoading_keepsLoadingState() {
+        lateinit var controller: WebViewController
+        val runtime = requireNotNull(
+            WebViewRuntimeConfig.forPageProbe(
+                rawUrl = "https://display.example.com/",
+                allowHttp = false,
+            ),
+        )
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+            controllerScope = scope
+            controller = WebViewController(scope)
+            val view = createSecureWebView(
+                context = ApplicationProvider.getApplicationContext(),
+                config = runtime,
+                client = secureWebViewClient(runtime.navigationPolicy, controller),
+            )
+            webView = view
+            controller.attach(view, runtime)
+            view.stopLoading()
+            controller.onPageStarted(view, runtime.initialUrl)
+            controller.onSslError(
+                view = view,
+                url = "https://assets.example.net/dashboard.js",
+                primaryError = 3,
+            )
+        }
+
+        assertTrue(controller.state.value is KioskUiState.Loading)
+    }
+
+    @Test
+    fun subresourceSslError_afterMainPageFinishes_keepsPageOnline() {
+        lateinit var controller: WebViewController
+        val runtime = requireNotNull(
+            WebViewRuntimeConfig.forPageProbe(
+                rawUrl = "https://display.example.com/",
+                allowHttp = false,
+            ),
+        )
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+            controllerScope = scope
+            controller = WebViewController(scope)
+            val view = createSecureWebView(
+                context = ApplicationProvider.getApplicationContext(),
+                config = runtime,
+                client = secureWebViewClient(runtime.navigationPolicy, controller),
+            )
+            webView = view
+            controller.attach(view, runtime)
+            view.stopLoading()
+            controller.onPageStarted(view, runtime.initialUrl)
+            controller.onPageFinished(view, runtime.initialUrl)
+            controller.onSslError(
+                view = view,
+                url = "https://assets.example.net/dashboard.js",
+                primaryError = 3,
+            )
+        }
+
+        assertTrue(controller.state.value is KioskUiState.Online)
+    }
+
+    @Test
+    fun mainFrameSslError_whileLoading_stillFailsClosed() {
+        lateinit var controller: WebViewController
+        val runtime = requireNotNull(
+            WebViewRuntimeConfig.forPageProbe(
+                rawUrl = "https://display.example.com/",
+                allowHttp = false,
+            ),
+        )
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+            controllerScope = scope
+            controller = WebViewController(scope)
+            val view = createSecureWebView(
+                context = ApplicationProvider.getApplicationContext(),
+                config = runtime,
+                client = secureWebViewClient(runtime.navigationPolicy, controller),
+            )
+            webView = view
+            controller.attach(view, runtime)
+            view.stopLoading()
+            controller.onPageStarted(view, runtime.initialUrl)
+            controller.onSslError(
+                view = view,
+                url = runtime.initialUrl,
+                primaryError = 3,
+            )
+        }
+
+        assertTrue(controller.state.value is KioskUiState.Fatal)
+    }
+
+    @Test
     fun repeatedRendererLoss_stopsAutomaticRecreation() {
         lateinit var controller: WebViewController
         val runtime = requireNotNull(

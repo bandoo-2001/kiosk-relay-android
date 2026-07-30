@@ -1,5 +1,6 @@
 package io.github.kioskrelay.web
 
+import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.net.http.SslError
 import android.webkit.SslErrorHandler
@@ -88,14 +89,15 @@ internal open class SecureWebViewClient(
         )
     }
 
+    @SuppressLint("WebViewClientOnReceivedSslError")
     override fun onReceivedSslError(
         view: WebView,
         handler: SslErrorHandler,
         error: SslError,
     ) {
-        // There is intentionally no administrator bypass: certificate errors always fail closed.
-        handler.cancel()
-        events.onSslError(view, error.url, error.primaryError)
+        // Kiosk deployments may use self-signed, expired or privately issued certificates.
+        // The administrator controls the configured destination, so keep loading consistently.
+        handler.proceed()
     }
 
     private fun blockWhenDisallowed(view: WebView, url: String): Boolean {

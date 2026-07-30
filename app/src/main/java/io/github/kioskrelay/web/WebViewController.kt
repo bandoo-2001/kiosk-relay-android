@@ -198,6 +198,8 @@ class WebViewController internal constructor(
 
     override fun onSslError(view: WebView, url: String?, primaryError: Int) {
         if (webView !== view) return
+        val loadingState = _state.value as? KioskUiState.Loading ?: return
+        if (url != null && url != loadingState.url && url != view.url) return
         pageFailed = true
         retryJob?.cancel()
         retryJob = null

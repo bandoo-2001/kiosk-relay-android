@@ -18,6 +18,17 @@ class BrandAssetEditSession private constructor(
     private val transactionDirectory: File,
 ) {
     @Synchronized
+    fun remove(kind: BrandImageKind) {
+        if (!transactionDirectory.isDirectory) {
+            throw IOException("Branding edit transaction is missing")
+        }
+        val target = File(root, kind.relativePath)
+        if (target.exists() && !target.delete()) {
+            throw IOException("Unable to remove ${kind.relativePath}")
+        }
+    }
+
+    @Synchronized
     fun prepareCommit(config: KioskRelayConfig) {
         if (!transactionDirectory.isDirectory) {
             throw IOException("Branding edit transaction is missing")

@@ -13,6 +13,11 @@
     <string name="loading_message">加载提示语</string>
     <string name="offline_message">离线提示语</string>
     <string name="error_message">错误提示语</string>
+    <string name="logo_preview">Logo 预览</string>
+    <string name="splash_preview">启动背景预览</string>
+    <string name="remove_image">删除图片</string>
+    <string name="default_appearance">当前使用默认外观</string>
+    <string name="language_applies_after_save">保存后将自动切换应用语言。</string>
     <string name="allowed_origins">允许的 Origin</string>
     <string name="allowed_origins_hint">每行填写一个精确 Origin，例如 https://example.com</string>
     <string name="accept_cookies">接受 Cookie</string>

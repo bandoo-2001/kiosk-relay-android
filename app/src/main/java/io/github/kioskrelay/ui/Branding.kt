@@ -84,10 +84,12 @@ fun BrandLogo(
     branding: BrandingConfig,
     imageImporter: BrandImageImporter,
     modifier: Modifier = Modifier,
+    imageRevision: Int = 0,
 ) {
     val logo = rememberBrandImage(
         importer = imageImporter,
         relativePath = branding.logoRelativePath,
+        imageRevision = imageRevision,
     )
     if (logo != null) {
         Image(
@@ -110,9 +112,10 @@ fun BrandLogo(
 internal fun rememberBrandImage(
     importer: BrandImageImporter,
     relativePath: String?,
+    imageRevision: Int = 0,
 ): ImageBitmap? {
     val file = relativePath?.let(importer::resolve)
-    return remember(file?.absolutePath, file?.lastModified()) {
+    return remember(file?.absolutePath, file?.lastModified(), imageRevision) {
         file?.let { BitmapFactory.decodeFile(it.absolutePath)?.asImageBitmap() }
     }
 }

@@ -60,6 +60,10 @@ class MainActivity : AppCompatActivity() {
             AppLocale.SYSTEM -> ""
             AppLocale.ZH_CN -> "zh-CN"
             AppLocale.EN -> "en"
+            AppLocale.ZH_TW -> "zh-TW"
+            AppLocale.ES -> "es"
+            AppLocale.JA -> "ja"
+            AppLocale.KO -> "ko"
         }
         val desired = LocaleListCompat.forLanguageTags(languageTags)
         if (AppCompatDelegate.getApplicationLocales() != desired) {

@@ -4,8 +4,6 @@
     <string name="onboarding_welcome_body">配置受信任网页、动态品牌、显示方式和管理员保护，无需重新编译 APK。</string>
     <string name="onboarding_language">显示语言</string>
     <string name="language_system">跟随系统</string>
-    <string name="language_chinese">简体中文</string>
-    <string name="language_english">English</string>
     <string name="onboarding_brand_title">品牌外观</string>
     <string name="product_name">产品名称</string>
     <string name="brand_color">品牌颜色</string>
@@ -14,7 +12,6 @@
     <string name="optional">可选</string>
     <string name="onboarding_web_title">网页与显示</string>
     <string name="dashboard_url">网页地址</string>
-    <string name="dashboard_url_hint">https://example.com/dashboard</string>
     <string name="allow_http">允许旧版 HTTP</string>
     <string name="http_warning">HTTP 流量未加密，仅应在受信任的工业内网中开启。</string>
     <string name="http_risk_confirm_title">确认启用未加密 HTTP？</string>

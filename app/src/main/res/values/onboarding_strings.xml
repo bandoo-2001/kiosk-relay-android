@@ -4,8 +4,12 @@
     <string name="onboarding_welcome_body">Configure a trusted dashboard, branding, display behavior, and administrator protection. No rebuild is required.</string>
     <string name="onboarding_language">Display language</string>
     <string name="language_system">Follow system</string>
-    <string name="language_chinese">简体中文</string>
-    <string name="language_english">English</string>
+    <string name="language_chinese" translatable="false">简体中文</string>
+    <string name="language_english" translatable="false">English</string>
+    <string name="language_chinese_traditional" translatable="false">繁體中文</string>
+    <string name="language_spanish" translatable="false">Español</string>
+    <string name="language_japanese" translatable="false">日本語</string>
+    <string name="language_korean" translatable="false">한국어</string>
     <string name="onboarding_brand_title">Brand appearance</string>
     <string name="product_name">Product name</string>
     <string name="brand_color">Brand color</string>
@@ -14,7 +18,7 @@
     <string name="optional">Optional</string>
     <string name="onboarding_web_title">Web and display</string>
     <string name="dashboard_url">Dashboard URL</string>
-    <string name="dashboard_url_hint">https://example.com/dashboard</string>
+    <string name="dashboard_url_hint" translatable="false">https://example.com/dashboard</string>
     <string name="allow_http">Allow legacy HTTP</string>
     <string name="http_warning">HTTP traffic is not encrypted. Enable it only for a trusted industrial network.</string>
     <string name="http_risk_confirm_title">Enable unencrypted HTTP?</string>

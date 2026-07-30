@@ -6,6 +6,10 @@ enum class AppLocale {
     SYSTEM,
     ZH_CN,
     EN,
+    ZH_TW,
+    ES,
+    JA,
+    KO,
 }
 
 enum class ScreenOrientation {

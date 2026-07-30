@@ -12,6 +12,14 @@ import org.junit.Test
 
 class ConfigAndUrlPolicyTest {
     @Test
+    fun allSupportedLocalesRoundTripThroughProto() {
+        AppLocale.entries.forEach { locale ->
+            val config = ConfigDefaults.config.copy(locale = locale)
+            assertEquals(locale, config.toProto().toDomain().locale)
+        }
+    }
+
+    @Test
     fun defaults_matchIndustrialTabletProfileAndAndroidSeven() {
         val defaults = ConfigDefaults.config
 

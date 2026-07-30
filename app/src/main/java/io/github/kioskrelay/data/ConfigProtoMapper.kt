@@ -190,11 +190,19 @@ object ConfigProtoMapper {
         AppLocale.SYSTEM -> AppLocaleProto.APP_LOCALE_SYSTEM
         AppLocale.ZH_CN -> AppLocaleProto.APP_LOCALE_ZH_CN
         AppLocale.EN -> AppLocaleProto.APP_LOCALE_EN
+        AppLocale.ZH_TW -> AppLocaleProto.APP_LOCALE_ZH_TW
+        AppLocale.ES -> AppLocaleProto.APP_LOCALE_ES
+        AppLocale.JA -> AppLocaleProto.APP_LOCALE_JA
+        AppLocale.KO -> AppLocaleProto.APP_LOCALE_KO
     }
 
     private fun AppLocaleProto.toDomain(): AppLocale = when (this) {
         AppLocaleProto.APP_LOCALE_ZH_CN -> AppLocale.ZH_CN
         AppLocaleProto.APP_LOCALE_EN -> AppLocale.EN
+        AppLocaleProto.APP_LOCALE_ZH_TW -> AppLocale.ZH_TW
+        AppLocaleProto.APP_LOCALE_ES -> AppLocale.ES
+        AppLocaleProto.APP_LOCALE_JA -> AppLocale.JA
+        AppLocaleProto.APP_LOCALE_KO -> AppLocale.KO
         AppLocaleProto.APP_LOCALE_SYSTEM,
         AppLocaleProto.UNRECOGNIZED,
         -> AppLocale.SYSTEM

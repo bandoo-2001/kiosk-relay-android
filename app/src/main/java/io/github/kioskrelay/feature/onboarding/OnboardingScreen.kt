@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -18,18 +19,25 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowForward
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -67,7 +75,15 @@ import io.github.kioskrelay.ui.theme.KioskSurface
 import java.net.URI
 import kotlin.math.roundToInt
 
-enum class SetupLocale { SYSTEM, ZH_CN, ENGLISH }
+enum class SetupLocale {
+    SYSTEM,
+    ZH_CN,
+    ENGLISH,
+    ZH_TW,
+    SPANISH,
+    JAPANESE,
+    KOREAN,
+}
 
 enum class SetupOrientation { LANDSCAPE, PORTRAIT, FOLLOW_SYSTEM }
 
@@ -232,6 +248,11 @@ fun OnboardingScreen(
                                     showErrors = false
                                     step--
                                 }) {
+                                    Icon(
+                                        Icons.AutoMirrored.Outlined.ArrowBack,
+                                        contentDescription = null,
+                                    )
+                                    Spacer(Modifier.width(8.dp))
                                     Text(stringResource(R.string.previous))
                                 }
                             }
@@ -249,6 +270,15 @@ fun OnboardingScreen(
                                     }
                                 },
                             ) {
+                                Icon(
+                                    if (step == 3) {
+                                        Icons.Outlined.Check
+                                    } else {
+                                        Icons.AutoMirrored.Outlined.ArrowForward
+                                    },
+                                    contentDescription = null,
+                                )
+                                Spacer(Modifier.width(8.dp))
                                 Text(
                                     stringResource(
                                         if (step == 3) {
@@ -337,9 +367,10 @@ private fun WelcomeRail(currentStep: Int, modifier: Modifier = Modifier) {
 
 @Composable
 private fun StepIndicator(step: Int) {
-    Row(
+    FlowRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         repeat(4) { index ->
             Box(
@@ -381,6 +412,10 @@ private fun WelcomeStep(
             SetupLocale.SYSTEM to stringResource(R.string.language_system),
             SetupLocale.ZH_CN to stringResource(R.string.language_chinese),
             SetupLocale.ENGLISH to stringResource(R.string.language_english),
+            SetupLocale.ZH_TW to stringResource(R.string.language_chinese_traditional),
+            SetupLocale.SPANISH to stringResource(R.string.language_spanish),
+            SetupLocale.JAPANESE to stringResource(R.string.language_japanese),
+            SetupLocale.KOREAN to stringResource(R.string.language_korean),
         ),
         selected = selected,
         onSelected = onSelected,
@@ -438,12 +473,16 @@ private fun BrandStep(
             onClick = onChooseLogo,
             enabled = !imageImportInProgress,
         ) {
+            Icon(Icons.Outlined.Image, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
             Text(stringResource(R.string.choose_logo))
         }
         OutlinedButton(
             onClick = onChooseSplash,
             enabled = !imageImportInProgress,
         ) {
+            Icon(Icons.Outlined.Image, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
             Text(stringResource(R.string.choose_splash_background))
         }
     }
@@ -734,7 +773,7 @@ private fun <T> ChoiceRow(
         entries.forEach { (value, label) ->
             OutlinedButton(
                 onClick = { onSelected(value) },
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.widthIn(min = 140.dp),
                 shape = RoundedCornerShape(12.dp),
             ) {
                 Checkbox(

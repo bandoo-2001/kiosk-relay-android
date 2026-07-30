@@ -8,15 +8,20 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -238,18 +243,20 @@ private fun KioskStateOverlay(
                 is KioskUiState.Offline -> {
                     Text(
                         config.branding.offlineMessage.ifBlank {
-                            stringResource(R.string.kiosk_offline)
+                            stringResource(R.string.default_offline_message)
                         },
                         style = MaterialTheme.typography.titleLarge,
                     )
                     Button(onClick = onRetry) {
+                        Icon(Icons.Outlined.Refresh, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
                         Text(stringResource(R.string.retry_now))
                     }
                 }
                 is KioskUiState.PageError -> {
                     Text(
                         config.branding.errorMessage.ifBlank {
-                            stringResource(R.string.kiosk_page_error)
+                            stringResource(R.string.brand_default_error_message)
                         },
                         style = MaterialTheme.typography.titleLarge,
                     )
@@ -258,6 +265,8 @@ private fun KioskStateOverlay(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Button(onClick = onRetry) {
+                        Icon(Icons.Outlined.Refresh, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
                         Text(stringResource(R.string.retry_now))
                     }
                 }
@@ -271,6 +280,8 @@ private fun KioskStateOverlay(
                         ),
                     )
                     OutlinedButton(onClick = onRetry) {
+                        Icon(Icons.Outlined.Refresh, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
                         Text(stringResource(R.string.retry_now))
                     }
                 }
@@ -281,7 +292,7 @@ private fun KioskStateOverlay(
                 is KioskUiState.Fatal -> {
                     Text(
                         config.branding.errorMessage.ifBlank {
-                            stringResource(R.string.kiosk_fatal_error)
+                            stringResource(R.string.brand_default_error_message)
                         },
                         style = MaterialTheme.typography.titleLarge,
                     )
@@ -290,6 +301,8 @@ private fun KioskStateOverlay(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Button(onClick = onRetry) {
+                        Icon(Icons.Outlined.Refresh, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
                         Text(stringResource(R.string.retry_now))
                     }
                 }

@@ -562,6 +562,33 @@ fun KioskRelayApp(
         }
     }
 
+    fun removeBrandImage(
+        kind: BrandImageKind,
+        session: BrandAssetEditSession,
+        onRemoved: (Boolean) -> Unit,
+    ) {
+        scope.launch {
+            val result = runCatching {
+                container.brandingOperationCoordinator.runExclusive {
+                    withContext(Dispatchers.IO) {
+                        session.remove(kind)
+                    }
+                }
+            }
+            result.rethrowCancellation()
+            onRemoved(result.isSuccess)
+            snackbarHostState.showSnackbar(
+                if (result.isSuccess) {
+                    successMessage
+                } else {
+                    failureMessage.format(
+                        result.exceptionOrNull()?.message.orEmpty(),
+                    )
+                },
+            )
+        }
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
@@ -914,6 +941,21 @@ fun KioskRelayApp(
                                 onImported = onImported,
                             )
                         },
+                        onLogoRemoved = { onRemoved ->
+                            removeBrandImage(
+                                kind = BrandImageKind.LOGO,
+                                session = assetSession,
+                                onRemoved = onRemoved,
+                            )
+                        },
+                        onSplashRemoved = { onRemoved ->
+                            removeBrandImage(
+                                kind = BrandImageKind.SPLASH,
+                                session = assetSession,
+                                onRemoved = onRemoved,
+                            )
+                        },
+                        imageImporter = container.brandImageImporter,
                         onChangePassword = { password ->
                             if (!tryBeginSettingsOperation()) {
                                 return@SettingsScreen
@@ -1186,6 +1228,10 @@ private fun OnboardingDraft.toConfig(
                     SetupLocale.SYSTEM -> AppLocale.SYSTEM
                     SetupLocale.ZH_CN -> AppLocale.ZH_CN
                     SetupLocale.ENGLISH -> AppLocale.EN
+                    SetupLocale.ZH_TW -> AppLocale.ZH_TW
+                    SetupLocale.SPANISH -> AppLocale.ES
+                    SetupLocale.JAPANESE -> AppLocale.JA
+                    SetupLocale.KOREAN -> AppLocale.KO
                 },
                 onboardingCompleted = true,
                 branding = ConfigDefaults.config.branding.copy(
@@ -1221,6 +1267,10 @@ private fun SetupLocale.toAppLocale(): AppLocale = when (this) {
     SetupLocale.SYSTEM -> AppLocale.SYSTEM
     SetupLocale.ZH_CN -> AppLocale.ZH_CN
     SetupLocale.ENGLISH -> AppLocale.EN
+    SetupLocale.ZH_TW -> AppLocale.ZH_TW
+    SetupLocale.SPANISH -> AppLocale.ES
+    SetupLocale.JAPANESE -> AppLocale.JA
+    SetupLocale.KOREAN -> AppLocale.KO
 }
 
 private fun KioskRelayConfig.withResolvedBrandAssets(

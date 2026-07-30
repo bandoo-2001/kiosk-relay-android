@@ -13,6 +13,11 @@
     <string name="loading_message">Loading message</string>
     <string name="offline_message">Offline message</string>
     <string name="error_message">Error message</string>
+    <string name="logo_preview">Logo preview</string>
+    <string name="splash_preview">Startup background preview</string>
+    <string name="remove_image">Remove image</string>
+    <string name="default_appearance">Using the default appearance</string>
+    <string name="language_applies_after_save">The app language switches automatically after saving.</string>
     <string name="allowed_origins">Allowed origins</string>
     <string name="allowed_origins_hint">One exact origin per line, for example https://example.com</string>
     <string name="accept_cookies">Accept cookies</string>

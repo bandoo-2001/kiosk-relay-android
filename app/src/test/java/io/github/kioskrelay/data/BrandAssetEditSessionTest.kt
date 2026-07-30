@@ -46,6 +46,37 @@ class BrandAssetEditSessionTest {
     }
 
     @Test
+    fun rollback_restoresRemovedAsset() {
+        val root = temporaryFolder.newFolder("branding")
+        val logo = File(root, ConfigArchiveManager.LOGO_FILE).apply {
+            writeText("old")
+        }
+        val session = BrandAssetEditSession.begin(root)
+
+        session.remove(BrandImageKind.LOGO)
+        assertFalse(logo.exists())
+        session.rollback()
+
+        assertEquals("old", logo.readText())
+    }
+
+    @Test
+    fun commit_keepsAssetRemoved() {
+        val root = temporaryFolder.newFolder("branding")
+        val splash = File(root, ConfigArchiveManager.SPLASH_FILE).apply {
+            writeText("old")
+        }
+        val session = BrandAssetEditSession.begin(root)
+
+        session.remove(BrandImageKind.SPLASH)
+        session.prepareCommit(ConfigDefaults.config)
+        session.commit()
+        BrandAssetEditSession.recoverIfNeeded(root, ConfigDefaults.config)
+
+        assertFalse(splash.exists())
+    }
+
+    @Test
     fun processRecovery_rollsBackInterruptedSession() {
         val root = temporaryFolder.newFolder("branding")
         val logo = File(root, ConfigArchiveManager.LOGO_FILE).apply {
