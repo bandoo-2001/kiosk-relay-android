@@ -332,6 +332,7 @@ private fun SettingsNavigation(
                     onClick = { onSelected(section) },
                     modifier = Modifier
                         .weight(1f)
+                        .testTag("settings-section-${section.name.lowercase()}")
                         .focusRequester(focusRequesters[index])
                         .focusProperties {
                             if (index > 0) {
@@ -368,6 +369,7 @@ private fun SettingsNavigation(
                     fontWeight = if (section == selected) FontWeight.Bold else FontWeight.Normal,
                     modifier = Modifier
                         .fillMaxWidth()
+                        .testTag("settings-section-${section.name.lowercase()}")
                         .focusRequester(focusRequesters[index])
                         .focusProperties {
                             if (index > 0) {

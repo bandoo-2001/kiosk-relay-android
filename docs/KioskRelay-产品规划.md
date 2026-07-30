@@ -16,8 +16,12 @@ KioskRelay 是一个面向 Android 手机、平板、电视盒子和大屏终端
 - 已完成受限 WebView、精确 Origin 白名单、HTTP 风险确认、网络恢复、退避重试和 API 26+ Renderer 重建。
 - 已完成管理员密码摘要/锁定、隐藏入口、五组设置、配置导入导出、维护和脱敏诊断。
 - 已完成 API 24–28 与 API 29+ 分级开机策略，以及 Android TV Launcher、Banner 和 D-pad 基础操作。
-- 已通过 JVM 单元测试、Lint、Debug/Release 构建和仪器测试 APK 编译。
-- 尚未在当前环境运行 API 24/25 模拟器或 Android 7 真机，也尚未完成全部系统/WebView 兼容矩阵，因此 Android 7 当前状态是“代码与构建兼容，运行待验证”。
+- 已通过 JVM 单元测试、Lint、Debug/Release 构建和仪器测试 APK 编译；API 24
+  connected 仪器测试已最终全量 `13/13` 通过，0 skipped、0 failed。
+- Debug APK 已在 Android 7.0 / API 24 x86_64 AVD 完成安装和核心流程实测。
+  WebView 119 下测试页面完整渲染；系统 WebView 53 因无法解析 Vite 8 客户端代码而白屏。
+- 当前 Android 7 状态是“API 24 Debug 核心流程已在模拟器验证，生产发布全面验收待完成”。
+  详细边界和证据见 [Android 7.0 / API 24 验证报告](./Android-7-API24-验证报告-20260730.md)。
 
 ### 一句话介绍
 
@@ -516,7 +520,7 @@ MVP 暂不包含：
 - 自定义启动页
 - 自定义加载与离线文案
 
-### v0.4.0：普通模式 MVP（已实现，真机矩阵待验收）
+### v0.4.0：普通模式 MVP（已实现，API 24 核心流程已验证，完整矩阵待验收）
 
 - 普通设备分 API 等级的尽力而为开机恢复
 - Android TV 遥控器导航和 Launcher 资源
@@ -525,7 +529,9 @@ MVP 暂不包含：
 - 页面诊断
 - 清理缓存和恢复默认设置
 - JVM/UI/WebView 自动化测试基础
-- API 24、25、26、29、31、35/36 真机或模拟器兼容性验证（待完成）
+- API 24 Debug 核心流程兼容性验证（已在 x86_64 AVD 完成）
+- API 24 的 13 项仪器测试最终全量通过（已完成）
+- 签名 Release、真实硬件，以及 API 25、26、29、31、35/36 兼容性验证（待完成）
 
 ### v1.0.0：专用设备与稳定发布
 
@@ -602,10 +608,19 @@ MVP 暂不包含：
 | `test` | 通过，53 个 JVM 用例 |
 | `lint` | 通过 |
 | `assembleDebug` | 通过 |
-| `assembleRelease` | 通过，产出未签名 Release APK |
-| `assembleDebugAndroidTest` | 通过，13 个仪器测试用例可编译为测试 APK，尚未在设备执行 |
-| API 24/25 安装与运行 | 待模拟器或 Android 7 真机 |
+| `assembleRelease` | 通过，产出未签名 Release APK；尚未在 API 24 安装 |
+| `assembleDebugAndroidTest` | 通过，13 个仪器测试用例可编译为测试 APK |
+| API 24 仪器测试 | 最终全量运行 `13/13` 通过，0 skipped、0 failed，`BUILD SUCCESSFUL in 20s` |
+| API 24 Debug 安装与核心流程 | 通过，Android 7.0 x86_64 AVD；四步首启、HTTP 确认、DataStore 进程重启、返回键、管理员 D-pad、全屏横屏常亮、退避、真实断网恢复和开机自启动均通过 |
+| API 24 + WebView 53 | 测试页面不通过；主文档完成，但 Vite 8 客户端报 `SyntaxError: Unexpected token .` 并白屏 |
+| API 24 + WebView 119 | 页面前端完整渲染；本地 8071 后端未运行，HTTP 502 导致业务数据为 `--` |
+| API 24 SSL/真实重定向人工验收 | 本轮未覆盖，不宣称通过 |
+| API 25 安装与运行 | 待模拟器或 Android 7.1 真机 |
 | API 26/29/31/35/36 运行矩阵 | 待设备验收 |
-| WebView 119 与当前版本 | 待可控测试页面验收 |
+| Android 7 工业平板/TV 与签名 Release | 待目标硬件验收 |
 
-当前结论：`v0.4.0` 已达到代码实现和构建候选状态；在 API 24 安装、首次配置、DataStore、WebView、HTTP/HTTPS、全屏、网络恢复、进程重启和开机启动全部实测通过前，不标记“Android 7 已验证”。
+当前结论：`v0.4.0` 已达到代码实现和构建候选状态，可以标记“API 24 Debug 核心流程已在
+模拟器验证，API 24 仪器测试 13/13 通过”。在签名 Release 安装、实际生产网页、
+SSL/重定向安全路径和目标工业硬件验收完成前，不标记“Android 7 生产发布已全面验收”。
+API 24 没有 `onRenderProcessGone` 平台回调，因此本版本在 Android 7 上不具备
+Renderer 自动重建能力。

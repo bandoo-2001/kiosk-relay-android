@@ -1,19 +1,16 @@
 package io.github.kioskrelay.feature.settings
 
+import android.view.KeyEvent
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.assertIsNotEnabled
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performKeyInput
-import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
-import androidx.compose.ui.test.pressKey
 import androidx.test.core.app.ApplicationProvider
+import androidx.test.platform.app.InstrumentationRegistry
 import io.github.kioskrelay.R
 import io.github.kioskrelay.config.ConfigDefaults
 import io.github.kioskrelay.config.KioskRelayConfig
@@ -72,16 +69,33 @@ class SettingsScreenTest {
 
     @Test
     fun dpadRight_movesFocusAcrossSettingsSections() {
-        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
-        setScreen()
-        val brand = composeRule.onNodeWithText(context.getString(R.string.settings_brand))
-        val web = composeRule.onNodeWithText(context.getString(R.string.settings_web))
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        instrumentation.setInTouchMode(true)
+        try {
+            setScreen()
+            composeRule.waitForIdle()
+            val brand = composeRule.onNodeWithTag("settings-section-brand")
+            val web = composeRule.onNodeWithTag("settings-section-web")
 
-        brand.performSemanticsAction(SemanticsActions.RequestFocus)
-        brand.assertIsFocused()
-        brand.performKeyInput { pressKey(Key.DirectionRight) }
+            // The first hardware key leaves touch mode and establishes the initial focus.
+            instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_RIGHT)
+            composeRule.waitUntil(timeoutMillis = 2_000) {
+                brand.fetchSemanticsNode().config.getOrElse(
+                    androidx.compose.ui.semantics.SemanticsProperties.Focused,
+                ) { false }
+            }
+            brand.assertIsFocused()
 
-        web.assertIsFocused()
+            instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_RIGHT)
+            composeRule.waitUntil(timeoutMillis = 2_000) {
+                web.fetchSemanticsNode().config.getOrElse(
+                    androidx.compose.ui.semantics.SemanticsProperties.Focused,
+                ) { false }
+            }
+            web.assertIsFocused()
+        } finally {
+            instrumentation.setInTouchMode(true)
+        }
     }
 
     private fun setScreen(

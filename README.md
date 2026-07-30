@@ -18,9 +18,16 @@ Android application.
 - Languages: system default, Simplified Chinese, and English
 
 The project currently passes JVM tests, Android Lint, Debug and minified Release
-builds, and Android instrumentation-test APK compilation. API 24 code/build
-compatibility is verified, but Android 7 installation and runtime validation
-still require an API 24 emulator or a physical Android 7 device.
+builds, and Android instrumentation-test APK compilation. The Debug APK was
+installed and its core flows were exercised on an Android 7.0 / API 24 x86_64
+AVD. The test dashboard rendered completely with Chrome/WebView 119; the AVD's
+system WebView 53 loaded the main document but could not parse the Vite 8 client
+(`SyntaxError: Unexpected token .`), resulting in a blank page.
+
+This is API 24 Debug core-flow validation, not full production acceptance. A
+full connected instrumentation run passed 13/13 with no skipped or failed
+tests. Signed Release installation, physical hardware testing, and the
+remaining Android-version matrix are still required.
 
 ## Implemented MVP
 
@@ -76,14 +83,21 @@ distribution.
   configuration is restored after the process or Activity is restarted.
 - API 26+ recreates a terminated WebView renderer and stops automatic recovery
   after repeated renderer failures.
+- On the API 24 AVD, first-run setup, HTTP confirmation, DataStore process
+  restart, protected Back behavior, the administrator D-pad sequence,
+  fullscreen/landscape/keep-awake behavior, bounded retry, real network
+  disconnect/recovery, and `BOOT_COMPLETED` launch were exercised successfully.
+- The WebView 119 page-rendering result excludes business data: the local
+  backend on port 8071 was not running, so the Vite proxy returned HTTP 502 and
+  dashboard values remained `--`.
 - API 29+ restricts background Activity launches. Standard mode posts a
   best-effort notification or resumes on the next user launch; it does not
   promise that the kiosk will appear automatically after boot.
 - Android 7 should be used only with trusted intranet pages and a controlled
   WebView package. Public unattended deployments should use a newer Android
   release.
-- Runtime acceptance is still required on API 24, 25, 26, 29, 31, and 35/36,
-  including WebView 119 and the current WebView release.
+- API 25, 26, 29, 31, and 35/36 runtime acceptance remains outstanding. The API
+  24 run did not claim manual coverage of SSL-error handling or redirect chains.
 
 ## Scope
 
@@ -94,6 +108,7 @@ capabilities remain outside the standard-mode MVP.
 ## Documentation
 
 - [Product plan and implementation status (Simplified Chinese)](./docs/KioskRelay-产品规划.md)
+- [Android 7.0 / API 24 validation report (Simplified Chinese)](./docs/Android-7-API24-验证报告-20260730.md)
 - [Visual asset notes](./docs/assets/README.md)
 
 ## License

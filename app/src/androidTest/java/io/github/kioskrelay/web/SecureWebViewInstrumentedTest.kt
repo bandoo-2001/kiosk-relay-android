@@ -44,22 +44,22 @@ class SecureWebViewInstrumentedTest {
         )
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
             val client = secureWebViewClient(runtime.navigationPolicy, NoOpEvents)
-            webView = createSecureWebView(
+            val view = createSecureWebView(
                 context = ApplicationProvider.getApplicationContext(),
                 config = runtime,
                 client = client,
             )
-        }
-        val view = requireNotNull(webView)
+            webView = view
 
-        assertTrue(view.settings.javaScriptEnabled)
-        assertTrue(view.settings.domStorageEnabled)
-        assertFalse(view.settings.allowFileAccess)
-        assertFalse(view.settings.allowContentAccess)
-        assertFalse(view.settings.javaScriptCanOpenWindowsAutomatically)
-        assertFalse(view.settings.supportMultipleWindows())
-        assertTrue(view.settings.mixedContentMode == WebSettings.MIXED_CONTENT_NEVER_ALLOW)
-        assertFalse(CookieManager.getInstance().acceptThirdPartyCookies(view))
+            assertTrue(view.settings.javaScriptEnabled)
+            assertTrue(view.settings.domStorageEnabled)
+            assertFalse(view.settings.allowFileAccess)
+            assertFalse(view.settings.allowContentAccess)
+            assertFalse(view.settings.javaScriptCanOpenWindowsAutomatically)
+            assertFalse(view.settings.supportMultipleWindows())
+            assertTrue(view.settings.mixedContentMode == WebSettings.MIXED_CONTENT_NEVER_ALLOW)
+            assertFalse(CookieManager.getInstance().acceptThirdPartyCookies(view))
+        }
     }
 
     @Test
