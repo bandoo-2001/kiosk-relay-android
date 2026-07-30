@@ -16,15 +16,19 @@ KioskRelay 是一款面向工业平板、数字标牌、手机和基础 Android 
 - 技术栈：Jetpack Compose、Proto DataStore、AndroidX WebKit
 - 语言：跟随系统、简体中文、英文
 
-当前工程已通过 JVM 单元测试、Android Lint、Debug/混淆 Release 构建和
-Android 仪器测试 APK 编译。Debug APK 已在 Android 7.0 / API 24 x86_64 AVD
-完成安装和核心流程实测。Chrome/WebView 119 下测试页面完整渲染；该 AVD 镜像自带
+当前工程已通过 58 个 JVM 单元测试、Android Lint、Debug/混淆 Release 构建，以及
+Android 7.0 / API 24 AVD 上 13 个 connected 仪器测试。Debug APK 已使用
+`http://192.168.1.11:5173/` 完成首启/品牌、选定安全场景、开启刷新时断网恢复、
+开启且 0 秒延迟的开机路径、配置 ZIP 核心路径及部分维护/诊断的严格实测。
+Chrome/WebView 119 下目标网页主体和 8 个业务请求最终正常加载；该 AVD 镜像自带
 WebView 53 虽能加载主文档，但无法解析 Vite 8 客户端代码并报
 `SyntaxError: Unexpected token .`，最终白屏。
 
 当前状态是“API 24 Debug 核心流程已在模拟器验证”，不是“Android 7 生产发布已全面
-验收”。API 24 connected 仪器测试已最终全量 `13/13` 通过，0 skipped、0 failed；
-签名 Release 安装、真实硬件和其余 Android 版本矩阵仍是发布门禁。
+验收”。严格实测确认了 3 个运行阻断项：关闭网络恢复重载时错误页被误标成在线；
+从设置返回或执行维护重载后沉浸式系统栏未恢复；HTTPS 子资源证书失败会错误遮挡整个
+已加载大屏。源码审计另发现凭据损坏可能失败开放的高风险项。签名 Release 安装、
+真实硬件和其余 Android 版本矩阵也仍是发布门禁。
 
 ## 已实现的普通模式 MVP
 
@@ -75,16 +79,22 @@ Release APK 当前未签名，交付设备前需使用正式部署证书签名�
   进程或 Activity 下次启动时恢复。
 - API 26+ 支持 Renderer 退出后重建；连续异常达到上限后停止自动循环并等待手动重试。
 - API 24 AVD 已实测通过四步首启、HTTP 风险确认、DataStore 进程重启、返回键保护、
-  管理员 D-pad 序列、全屏横屏常亮、失败退避、真实网络断开/恢复和
-  `BOOT_COMPLETED` 自启动。
-- WebView 119 的通过结论仅指页面前端完整渲染。本地 `8071` 后端未启动，Vite 代理
-  返回 HTTP 502，因此业务数据为 `--`，未完成端到端业务数据验收。
+  管理员触屏/D-pad 序列、首次进入展示页的全屏横屏常亮、前两档失败退避、
+  开启恢复刷新时的真实网络断开/恢复、
+  自签名证书拒绝、跨 Origin/`intent://` 拦截和 `BOOT_COMPLETED` 自启动。
+- WebView 119 下目标页面及本轮检查的 8 个数据请求最终返回 HTTP 200。测试期间
+  `8071` 后端曾短暂不可用并由 Vite 返回 HTTP 502；业务数据准确性和服务 SLA
+  不属于 Android 客户端兼容验收。
+- 目标页的 Open-Meteo HTTPS 天气请求在 API 24 / WebView 119 上发生证书失败；
+  请求被正确取消，但当前 App 会把子资源错误升级为全局 Fatal，遮挡已渲染大屏。
+- 当前已知缺陷和未覆盖场景以严格测试报告为准；尤其不能把仪器测试中的合成回调
+  等同于真实 302 重定向、Renderer 崩溃或硬件行为。
 - API 29+ 受后台 Activity 启动限制，普通模式仅做通知或下次打开恢复，
   不承诺开机后一定自动弹出。
 - Android 7 建议只加载可信内网页面，并控制系统 WebView 版本；公网无人值守部署
   推荐使用更高版本 Android。
-- API 25、26、29、31、35/36 仍需完成运行矩阵；本轮 API 24 人工验收不宣称已覆盖
-  SSL 错误和真实重定向链。
+- API 25、26、29、31、35/36 仍需完成运行矩阵；本轮已实测自签名 SSL 错误取消和
+  直接跨 Origin 导航，但不宣称已覆盖真实 302 重定向链。
 
 ## 当前范围
 
@@ -94,6 +104,7 @@ Release APK 当前未签名，交付设备前需使用正式部署证书签名�
 ## 文档
 
 - [产品规划与实现状态](./docs/KioskRelay-产品规划.md)
+- [严格功能与场景测试报告（2026-07-30）](./docs/KioskRelay-严格功能与场景测试报告-20260730.md)
 - [Android 7.0 / API 24 验证报告](./docs/Android-7-API24-验证报告-20260730.md)
 - [视觉素材说明](./docs/assets/README.md)
 

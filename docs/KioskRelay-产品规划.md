@@ -13,15 +13,18 @@ KioskRelay 是一个面向 Android 手机、平板、电视盒子和大屏终端
 ### v0.4.0 实现状态
 
 - 已完成单 `app` 模块、四步首次配置、动态品牌、Proto DataStore 和中英文界面。
-- 已完成受限 WebView、精确 Origin 白名单、HTTP 风险确认、网络恢复、退避重试和 API 26+ Renderer 重建。
+- 已完成受限 WebView、精确 Origin 白名单、HTTP 风险确认、网络恢复、退避重试和 API 26+ Renderer 重建；
+  API 24 严格实测发现关闭网络恢复重载时存在“伪 Online”缺陷，发布前待修复。
 - 已完成管理员密码摘要/锁定、隐藏入口、五组设置、配置导入导出、维护和脱敏诊断。
 - 已完成 API 24–28 与 API 29+ 分级开机策略，以及 Android TV Launcher、Banner 和 D-pad 基础操作。
-- 已通过 JVM 单元测试、Lint、Debug/Release 构建和仪器测试 APK 编译；API 24
-  connected 仪器测试已最终全量 `13/13` 通过，0 skipped、0 failed。
+- 已通过 58 个 JVM 单元测试、Lint、Debug/Release 构建；API 24 connected 仪器测试
+  已最终全量 `13/13` 通过，0 skipped、0 failed。
 - Debug APK 已在 Android 7.0 / API 24 x86_64 AVD 完成安装和核心流程实测。
-  WebView 119 下测试页面完整渲染；系统 WebView 53 因无法解析 Vite 8 客户端代码而白屏。
+  WebView 119 下指定页面主体和检查的业务请求最终正常加载；系统 WebView 53 因无法
+  解析 Vite 8 客户端代码而白屏。
 - 当前 Android 7 状态是“API 24 Debug 核心流程已在模拟器验证，生产发布全面验收待完成”。
-  详细边界和证据见 [Android 7.0 / API 24 验证报告](./Android-7-API24-验证报告-20260730.md)。
+  严格实测已确认网络状态、沉浸式恢复和子资源 TLS 处理三处发布阻断项。详细边界和证据见
+  [严格功能与场景测试报告](./KioskRelay-严格功能与场景测试报告-20260730.md)。
 
 ### 一句话介绍
 
@@ -38,7 +41,7 @@ KioskRelay 是一个面向 Android 手机、平板、电视盒子和大屏终端
 - 无需重新编译 APK 即可切换受信任的目标网页。
 - 支持沉浸式全屏和屏幕常亮，并按部署模式提供不同级别的开机启动能力。
 - 在断网、页面加载失败或 WebView 异常时自动恢复。
-- 提供隐藏且受密码保护的管理入口。
+- 提供隐藏管理入口和可选管理员密码保护；未设置密码时仅提供隐藏性，不提供认证保护。
 - 保持项目轻量、易部署、易二次开发。
 
 ### 2.1 交付原则
@@ -205,7 +208,7 @@ KioskRelay 接收开机事件
 
 ### 5.5 Android TV 适配
 
-- 所有配置功能支持五向 D-pad 和返回键操作。
+- 当前提供基础五向 D-pad 和返回键支持；所有配置功能的完整焦点链仍需 TV 硬件验收。
 - 提供清晰的焦点、选中和按下状态。
 - 隐藏设置入口支持遥控器按键序列，不依赖触屏连点。
 - 提供 Android TV Launcher 图标和 Banner。
@@ -366,10 +369,19 @@ Starting → Loading → Online
                 ↘ Offline
                 ↘ PageError → BackoffRetry
                 ↘ RendererGone → RecreateWebView
+                ↘ Fatal
+
+PageError → BackoffRetry → Loading
+PageError → RetryLimitReached → Fatal
+SslError(MainFrame) → Cancel → Fatal
+SslError(Subresource) → CancelResource
 ```
 
 - 页面失败使用带上限的退避重试，避免固定间隔无限刷新。
-- 网络恢复只触发一次受控重载，避免网络回调重复加载。
+- 开启网络恢复刷新时只触发一次受控重载；未开启时不得只凭网络回调进入 Online，
+  Online 必须由主文档成功加载确认。当前 API 24 实测发现后一状态不变量尚未满足。
+- 所有 SSL 错误都取消；只有主文档证书失败进入 Fatal。当前实现会将子资源证书失败
+  也升级为 Fatal，API 24 指定网页已复现。
 - 渲染进程退出后销毁旧 WebView 并创建新实例，不复用失效对象。
 - 同一页面连续触发渲染崩溃时停止自动恢复并展示诊断入口。
 - 页面级秒级重试由前台生命周期内的协程管理，不使用后台任务调度器。
@@ -532,6 +544,10 @@ MVP 暂不包含：
 - JVM/UI/WebView 自动化测试基础
 - API 24 Debug 核心流程兼容性验证（已在 x86_64 AVD 完成）
 - API 24 的 13 项仪器测试最终全量通过（已完成）
+- API 24 自签名 TLS 拒绝、跨 Origin/`intent://` 拦截、配置 ZIP 和真实重启自启动
+  （已完成设备端补充验证）
+- 网络恢复关闭时伪 Online、设置/维护返回后沉浸式系统栏未恢复、子资源 TLS 错误
+  升级为全局 Fatal（已复现，待修复）
 - 签名 Release、真实硬件，以及 API 25、26、29、31、35/36 兼容性验证（待完成）
 
 ### v1.0.0：专用设备与稳定发布
@@ -593,7 +609,10 @@ MVP 暂不包含：
 4. 管理员可以通过受保护流程退出锁定模式。
 5. 设备重启后能恢复到展示页面，并在目标硬件上完成实机验证。
 
-### 14.3 测试要求
+### 14.3 发布前目标测试要求
+
+以下是完整发布目标，不代表当前 13 项仪器测试已经用真实网络或硬件覆盖所有条目；
+当前实测范围和缺口以 14.4 为准。
 
 - JVM 单元测试覆盖配置默认值/迁移、URL 与 Origin、HTTP 策略、退避状态机、密码摘要/锁定、诊断脱敏、图片编辑事务、配置导入导出和恶意 ZIP。
 - Compose/UI 测试覆盖四步首次配置、字段错误、HTTP 确认、设置保存和恢复默认。
@@ -607,21 +626,31 @@ MVP 暂不包含：
 | 门禁 | 当前结果 |
 | --- | --- |
 | `test` | 通过，58 个 JVM 用例 |
-| `lint` | 通过 |
+| `lint` | 干净提交基线通过，0 error、47 warning |
 | `assembleDebug` | 通过 |
 | `assembleRelease` | 通过，产出未签名 Release APK；尚未在 API 24 安装 |
 | `assembleDebugAndroidTest` | 通过，13 个仪器测试用例可编译为测试 APK |
-| API 24 仪器测试 | 最终全量运行 `13/13` 通过，0 skipped、0 failed，`BUILD SUCCESSFUL in 20s` |
-| API 24 Debug 安装与核心流程 | 通过，Android 7.0 x86_64 AVD；四步首启、HTTP 确认、DataStore 进程重启、返回键、管理员 D-pad、全屏横屏常亮、退避、真实断网恢复和开机自启动均通过 |
+| 完整构建门禁 | `ec3c6b5` 干净副本、Gradle 9.4.1 / AGP 9.2.1 下，58 个 JVM + 13 个 API 24 仪器用例全部通过，`BUILD SUCCESSFUL in 4m 52s` |
+| API 24 仪器测试 | 最终全量运行 `13/13` 通过，0 skipped、0 failed；其中部分 WebView 场景是合成回调 |
+| API 24 Debug 首启与管理员 | 四步首启、HTTP 确认、DataStore 重启、返回键、触屏隐藏入口和实际 keyevent TV 序列通过；不等同 TV 硬件验收 |
+| API 24 展示策略 | 首次进入的横屏、全屏、常亮通过；从设置返回或维护重载后系统栏未重新隐藏，实测不通过 |
+| API 24 失败退避 | 真实拒绝连接已验证 5 秒、10 秒和手动重试归零；完整上限由自动化覆盖 |
+| API 24 网络恢复，刷新开启 | 真实断网进入 Offline，恢复后受控重载并回到网页，实测通过 |
+| API 24 网络恢复，刷新关闭 | 恢复后错误进入 Online 并露出 `ERR_CONNECTION_REFUSED` 原生页，实测不通过 |
+| API 24 安全导航 | 自签名主文档 TLS 被取消并进入 Fatal；直接跨 Origin 和 `intent://` 主文档导航被阻止；真实 HTTP 302 链仍待测 |
+| API 24 子资源 TLS | Open-Meteo HTTPS 子资源失败被正确取消，但整个已渲染大屏被升级为 Fatal，实测不通过 |
+| API 24 配置与维护 | 配置 ZIP 导出、有效导入、未知 schema 拒绝、旧密码保留和诊断导出通过；Cookie/缓存清理完成性仍待专用页面断言 |
+| API 24 开机启动 | 开启、延迟 0 秒执行真实系统重启后自动拉起通过；其余延迟/关闭/强停场景待测 |
 | API 24 + WebView 53 | 测试页面不通过；主文档完成，但 Vite 8 客户端报 `SyntaxError: Unexpected token .` 并白屏 |
-| API 24 + WebView 119 | 页面前端完整渲染；本地 8071 后端未运行，HTTP 502 导致业务数据为 `--` |
-| API 24 SSL/真实重定向人工验收 | 本轮未覆盖，不宣称通过 |
+| API 24 + WebView 119 | 指定页面主体和本轮检查的 8 个业务数据请求最终返回 HTTP 200；外部天气 HTTPS 子资源失败触发全局 Fatal |
 | API 25 安装与运行 | 待模拟器或 Android 7.1 真机 |
 | API 26/29/31/35/36 运行矩阵 | 待设备验收 |
 | Android 7 工业平板/TV 与签名 Release | 待目标硬件验收 |
 
-当前结论：`v0.4.0` 已达到代码实现和构建候选状态，可以标记“API 24 Debug 核心流程已在
-模拟器验证，API 24 仪器测试 13/13 通过”。在签名 Release 安装、实际生产网页、
-SSL/重定向安全路径和目标工业硬件验收完成前，不标记“Android 7 生产发布已全面验收”。
-API 24 没有 `onRenderProcessGone` 平台回调，因此本版本在 Android 7 上不具备
-Renderer 自动重建能力。
+当前结论：`v0.4.0` 可以标记“API 24 Debug 核心流程已在模拟器验证，API 24 仪器测试
+13/13 通过”，但不能标记“Android 7 生产发布已全面验收”。发布前至少需要修复
+子资源 TLS 错误升级为全局 Fatal、`refreshOnNetworkRecovery=false` 的伪 Online、
+路由返回后沉浸式未恢复，以及凭据损坏失败开放风险；随后安装签名 Release，并完成
+真实 302、安全专用页、目标硬件和 Android 版本矩阵。API 24 没有
+`onRenderProcessGone` 平台回调，因此 Android 7 不具备 Renderer 自动重建能力。完整证据见
+[严格功能与场景测试报告](./KioskRelay-严格功能与场景测试报告-20260730.md)。
