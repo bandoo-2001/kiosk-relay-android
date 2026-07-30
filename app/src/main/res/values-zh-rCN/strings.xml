@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">KioskRelay</string>
+    <string name="default_product_name">KioskRelay</string>
+    <string name="default_offline_message">网络不可用，正在重新连接…</string>
+</resources>

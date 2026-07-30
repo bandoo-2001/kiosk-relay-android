@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package kioskrelay.config.v1;
+
+option java_package = "io.github.kioskrelay.proto";
+option java_multiple_files = true;
+option java_outer_classname = "KioskRelayConfigProtos";
+option optimize_for = LITE_RUNTIME;
+
+enum AppLocaleProto {
+  APP_LOCALE_SYSTEM = 0;
+  APP_LOCALE_ZH_CN = 1;
+  APP_LOCALE_EN = 2;
+}
+
+enum ScreenOrientationProto {
+  SCREEN_ORIENTATION_LANDSCAPE = 0;
+  SCREEN_ORIENTATION_PORTRAIT = 1;
+  SCREEN_ORIENTATION_SENSOR = 2;
+}
+
+message BrandingConfigProto {
+  optional string product_name = 1;
+  optional string logo_relative_path = 2;
+  optional string splash_relative_path = 3;
+  optional uint64 primary_color_argb = 4;
+  optional uint64 background_color_argb = 5;
+  optional string loading_message = 6;
+  optional string offline_message = 7;
+  optional string error_message = 8;
+}
+
+message WebViewConfigProto {
+  optional string initial_url = 1;
+  repeated string allowed_origins = 2;
+  optional bool allow_http = 3;
+  optional ScreenOrientationProto orientation = 4;
+  optional bool fullscreen = 5;
+  optional bool keep_screen_on = 6;
+  optional bool support_zoom = 7;
+  optional string custom_user_agent = 8;
+  optional bool accept_cookies = 9;
+  optional bool refresh_on_network_recovery = 10;
+}
+
+message RuntimeConfigProto {
+  repeated uint32 retry_delays_seconds = 1;
+  optional bool boot_start_enabled = 2;
+  optional uint32 boot_delay_seconds = 3;
+}
+
+message KioskRelayConfigProto {
+  optional uint32 schema_version = 1;
+  optional AppLocaleProto locale = 2;
+  optional bool onboarding_completed = 3;
+  optional BrandingConfigProto branding = 4;
+  optional WebViewConfigProto web_view = 5;
+  optional RuntimeConfigProto runtime = 6;
+}

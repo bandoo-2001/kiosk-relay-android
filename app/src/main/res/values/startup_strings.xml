@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="startup_notification_channel">Kiosk startup recovery</string>
+    <string name="startup_notification_text">Tap to restore the kiosk display</string>
+</resources>
