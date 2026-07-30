@@ -1152,6 +1152,7 @@ fun KioskRelayApp(
         WebTestDialog(
             url = onboardingDraft.url,
             allowHttp = onboardingDraft.allowHttp,
+            orientation = onboardingDraft.orientation,
             onResult = { succeeded ->
                 onboardingDraft = onboardingDraft.copy(
                     webTestResult = if (succeeded) {

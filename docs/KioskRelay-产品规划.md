@@ -605,7 +605,7 @@ MVP 暂不包含：
 
 | 门禁 | 当前结果 |
 | --- | --- |
-| `test` | 通过，53 个 JVM 用例 |
+| `test` | 通过，56 个 JVM 用例 |
 | `lint` | 通过 |
 | `assembleDebug` | 通过 |
 | `assembleRelease` | 通过，产出未签名 Release APK；尚未在 API 24 安装 |
