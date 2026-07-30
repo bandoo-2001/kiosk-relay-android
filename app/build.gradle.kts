@@ -39,6 +39,12 @@ android {
                 "proguard-rules.pro",
             )
         }
+        create("beta") {
+            initWith(getByName("release"))
+            versionNameSuffix = "-beta"
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += listOf("release")
+        }
     }
 
     compileOptions {
