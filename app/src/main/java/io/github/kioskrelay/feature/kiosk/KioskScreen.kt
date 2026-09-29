@@ -58,6 +58,7 @@ import io.github.kioskrelay.ui.BrandLogo
 import io.github.kioskrelay.ui.StartupBrandScreen
 import io.github.kioskrelay.web.KioskUiState
 import io.github.kioskrelay.web.KioskWebViewHost
+import io.github.kioskrelay.web.WebViewVersionFrame
 import io.github.kioskrelay.web.WebViewController
 import kotlinx.coroutines.launch
 
@@ -109,7 +110,7 @@ fun KioskScreen(
         controller.goBackIfPossible()
     }
 
-    Box(
+    WebViewVersionFrame(
         modifier = modifier
             .fillMaxSize()
             .onPreviewKeyEvent { event ->

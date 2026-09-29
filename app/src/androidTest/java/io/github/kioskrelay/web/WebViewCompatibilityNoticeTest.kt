@@ -1,6 +1,12 @@
 package io.github.kioskrelay.web
 
 import androidx.compose.ui.input.key.Key
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -16,6 +22,38 @@ import org.junit.Test
 
 class WebViewCompatibilityNoticeTest {
     @get:Rule val compose = createComposeRule()
+
+    @Test fun versionBar_remainsAboveFullSizeErrorContent() {
+        compose.setContent {
+            KioskRelayTheme {
+                WebViewVersionFrame(Modifier.fillMaxSize(), WebViewCompatibility("90.0.4430.91", 90, true)) {
+                    Surface(Modifier.fillMaxSize()) { Text("Page failed") }
+                }
+            }
+        }
+        val bar = compose.onNodeWithTag("webview-version-bar").assertIsDisplayed()
+        val error = compose.onNodeWithText("Page failed").assertIsDisplayed()
+        assertTrue(bar.fetchSemanticsNode().boundsInRoot.bottom <= error.fetchSemanticsNode().boundsInRoot.top)
+    }
+
+    @Test fun unidentifiedVersion_alertDismissesByRemoteAndBarRemains() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        compose.setContent {
+            KioskRelayTheme {
+                WebViewVersionFrame(Modifier.fillMaxSize(), WebViewCompatibility("WebView ?", 90, true, false)) {
+                    Text("Webpage")
+                }
+            }
+        }
+        val warning = compose.onNodeWithText(context.getString(R.string.web_version_unknown))
+        warning.assertIsDisplayed()
+        val confirm = compose.onNodeWithText(context.getString(R.string.confirm))
+        confirm.assertIsFocused()
+        confirm.performKeyInput { pressKey(Key.DirectionCenter) }
+        warning.assertDoesNotExist()
+        compose.onNodeWithTag("webview-version-bar").assertIsDisplayed()
+        compose.onNodeWithText("Webpage").assertIsDisplayed()
+    }
 
     @Test fun oldEngine_requiresExplicitRemoteAcknowledgement() {
         val accepted = AtomicBoolean(false)

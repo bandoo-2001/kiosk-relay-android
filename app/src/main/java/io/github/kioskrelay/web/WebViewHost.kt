@@ -49,8 +49,7 @@ fun WebViewHost(
     onStateChange: (KioskUiState) -> Unit = {},
     requestInitialFocus: Boolean = false,
 ) {
-    val context = LocalContext.current
-    val compatibility = remember(context) { inspectWebView(context) }
+    val compatibility = rememberWebViewCompatibility()
     var continueAnyway by remember(config.initialUrl, compatibility) { mutableStateOf(false) }
     if (needsCompatibilityWarning(compatibility.major) && !continueAnyway) {
         LaunchedEffect(compatibility) {

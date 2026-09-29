@@ -10,4 +10,5 @@
     <string name="web_system_settings">打开系统设置</string>
     <string name="web_try_anyway">仍然尝试加载</string>
     <string name="web_settings_unavailable">电视未提供此设置入口。</string>
+    <string name="web_version_unknown">无法识别系统 WebView 版本，暂时不能确认兼容性。请检查电视的系统 WebView，并提供顶部显示的信息以便排查。</string>
 </resources>

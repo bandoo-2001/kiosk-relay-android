@@ -38,4 +38,5 @@
     <string name="web_system_settings">システム設定を開く</string>
     <string name="web_try_anyway">読み込みを試す</string>
     <string name="web_settings_unavailable">このテレビには該当する設定画面がありません。</string>
+    <string name="web_version_unknown">システムのWebViewバージョンを識別できません。互換性は確認できません。テレビのWebViewを確認し、診断のため上部の情報をお知らせください。</string>
 </resources>

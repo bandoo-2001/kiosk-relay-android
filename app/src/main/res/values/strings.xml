@@ -12,4 +12,5 @@
     <string name="web_system_settings">Open system settings</string>
     <string name="web_try_anyway">Try loading anyway</string>
     <string name="web_settings_unavailable">The TV does not provide this settings entry.</string>
+    <string name="web_version_unknown">The system WebView version could not be identified. Compatibility cannot be confirmed. Check the TV system WebView and send the information shown in the top bar for diagnosis.</string>
 </resources>

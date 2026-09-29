@@ -43,4 +43,5 @@
     <string name="web_system_settings">Abrir ajustes del sistema</string>
     <string name="web_try_anyway">Intentar cargar de todos modos</string>
     <string name="web_settings_unavailable">Este televisor no ofrece esta opción de ajustes.</string>
+    <string name="web_version_unknown">No se pudo identificar la versión de WebView. No se puede confirmar la compatibilidad. Compruebe el WebView del televisor y facilite la información de la barra superior para el diagnóstico.</string>
 </resources>

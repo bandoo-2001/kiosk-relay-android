@@ -55,4 +55,5 @@
     <string name="web_system_settings">開啟系統設定</string>
     <string name="web_try_anyway">仍然嘗試載入</string>
     <string name="web_settings_unavailable">電視未提供此設定入口。</string>
+    <string name="web_version_unknown">無法識別系統 WebView 版本，暫時無法確認相容性。請檢查電視的系統 WebView，並提供頂部顯示的資訊以便排查。</string>
 </resources>

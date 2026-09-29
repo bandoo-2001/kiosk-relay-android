@@ -32,6 +32,7 @@ import androidx.compose.ui.window.DialogProperties
 import io.github.kioskrelay.ui.initialFocus
 import io.github.kioskrelay.R
 import io.github.kioskrelay.web.KioskUiState
+import io.github.kioskrelay.web.WebViewVersionFrame
 import io.github.kioskrelay.web.WebViewHost
 import io.github.kioskrelay.web.WebViewRuntimeConfig
 
@@ -149,12 +150,11 @@ fun WebTestDialog(
                         text = stringResource(R.string.web_test_title),
                         style = MaterialTheme.typography.headlineSmall,
                     )
-                    Box(
+                    WebViewVersionFrame(
                         modifier = Modifier
                             .size(layout.previewWidth, layout.previewHeight)
                             .align(Alignment.CenterHorizontally)
                             .testTag("web-test-preview"),
-                        contentAlignment = Alignment.Center,
                     ) {
                         WebViewHost(
                             config = runtimeConfig,
