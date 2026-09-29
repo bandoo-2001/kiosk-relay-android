@@ -1,6 +1,13 @@
 package io.github.kioskrelay.feature.onboarding
 
 import android.net.Uri
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.focusGroup
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -32,19 +39,18 @@ import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
+import io.github.kioskrelay.ui.RemoteButton as Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import io.github.kioskrelay.ui.RemoteOutlinedButton as OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -64,6 +70,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import io.github.kioskrelay.startup.StartupPermissionSettings
+import io.github.kioskrelay.ui.remoteVerticalNavigation
+import io.github.kioskrelay.ui.BootDelaySlider
+import io.github.kioskrelay.ui.RemoteSwitch as SettingsSwitch
+import io.github.kioskrelay.ui.remoteFocus
+import io.github.kioskrelay.ui.initialFocus
 import io.github.kioskrelay.R
 import io.github.kioskrelay.config.BrandingConfig
 import io.github.kioskrelay.data.BrandImageImporter
@@ -74,7 +85,6 @@ import io.github.kioskrelay.ui.theme.KioskBlue
 import io.github.kioskrelay.ui.theme.KioskCyan
 import io.github.kioskrelay.ui.theme.KioskSurface
 import java.net.URI
-import kotlin.math.roundToInt
 
 enum class SetupLocale {
     SYSTEM,
@@ -122,6 +132,13 @@ fun OnboardingScreen(
     modifier: Modifier = Modifier,
 ) {
     var step by rememberSaveable { mutableIntStateOf(0) }
+    val stepFocus = remember { FocusRequester() }
+    val stepScroll = rememberScrollState()
+    BackHandler(enabled = step > 0) { step-- }
+    LaunchedEffect(step) {
+        stepScroll.scrollTo(0)
+        stepFocus.requestFocus()
+    }
     // Credentials must never be copied into Activity saved state.
     var password by remember { mutableStateOf("") }
     var passwordConfirmation by remember { mutableStateOf("") }
@@ -195,7 +212,9 @@ fun OnboardingScreen(
                         Column(
                             modifier = Modifier
                                 .weight(1f)
-                                .verticalScroll(rememberScrollState()),
+                                .focusRequester(stepFocus)
+                                .focusGroup()
+                                .verticalScroll(stepScroll),
                         ) {
                             when (step) {
                                 0 -> WelcomeStep(
@@ -248,7 +267,7 @@ fun OnboardingScreen(
                                 OutlinedButton(onClick = {
                                     showErrors = false
                                     step--
-                                }) {
+                                }, modifier = Modifier.testTag("onboarding-previous")) {
                                     Icon(
                                         Icons.AutoMirrored.Outlined.ArrowBack,
                                         contentDescription = null,
@@ -318,7 +337,7 @@ fun OnboardingScreen(
                 }
             },
             dismissButton = {
-                OutlinedButton(onClick = { confirmHttpEnable = false }) {
+                OutlinedButton(onClick = { confirmHttpEnable = false }, modifier = Modifier.initialFocus()) {
                     Text(stringResource(R.string.cancel))
                 }
             },
@@ -445,7 +464,7 @@ private fun BrandStep(
             }
         },
         singleLine = true,
-        modifier = Modifier
+        modifier = Modifier.remoteVerticalNavigation()
             .fillMaxWidth()
             .testTag("onboarding-product-name"),
     )
@@ -460,6 +479,11 @@ private fun BrandStep(
                     .size(42.dp)
                     .clip(CircleShape)
                     .background(color)
+                    .remoteFocus(CircleShape)
+                    .semantics {
+                        contentDescription = "#%06X".format(colorValue and 0xFFFFFF)
+                        selected = draft.primaryColor == colorValue
+                    }
                     .clickable {
                         onDraftChange(draft.copy(primaryColor = colorValue))
                     }
@@ -589,7 +613,7 @@ private fun WebStep(
         },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
         singleLine = true,
-        modifier = Modifier
+        modifier = Modifier.remoteVerticalNavigation()
             .fillMaxWidth()
             .testTag("onboarding-url"),
     )
@@ -679,7 +703,7 @@ private fun SecurityStep(
         isError = passwordInvalid,
         supportingText = { Text(stringResource(R.string.password_optional_rule)) },
         singleLine = true,
-        modifier = Modifier
+        modifier = Modifier.remoteVerticalNavigation()
             .fillMaxWidth()
             .testTag("onboarding-password"),
     )
@@ -696,7 +720,7 @@ private fun SecurityStep(
             }
         },
         singleLine = true,
-        modifier = Modifier
+        modifier = Modifier.remoteVerticalNavigation()
             .fillMaxWidth()
             .testTag("onboarding-password-confirmation"),
     )
@@ -714,14 +738,9 @@ private fun SecurityStep(
         StartupPermissionSettings()
         Spacer(Modifier.height(16.dp))
         Text(stringResource(R.string.boot_delay, draft.bootDelaySeconds))
-        Slider(
-            value = draft.bootDelaySeconds.toFloat(),
-            onValueChange = {
-                onDraftChange(draft.copy(bootDelaySeconds = it.roundToInt().coerceIn(0, 60)))
-            },
-            valueRange = 0f..60f,
-            steps = 11,
-        )
+        BootDelaySlider(draft.bootDelaySeconds) { seconds ->
+            onDraftChange(draft.copy(bootDelaySeconds = seconds))
+        }
     }
     Spacer(Modifier.height(20.dp))
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
@@ -789,23 +808,6 @@ private fun <T> ChoiceRow(
     }
 }
 
-@Composable
-private fun SettingsSwitch(
-    title: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onCheckedChange(!checked) }
-            .padding(vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(title, modifier = Modifier.weight(1f))
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
-    }
-}
 
 internal fun isValidDashboardUrl(value: String, allowHttp: Boolean): Boolean {
     return runCatching {

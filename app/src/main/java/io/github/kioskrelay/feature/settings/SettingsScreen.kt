@@ -11,6 +11,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusGroup
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -50,16 +52,15 @@ import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
+import io.github.kioskrelay.ui.RemoteButton as Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import io.github.kioskrelay.ui.RemoteOutlinedButton as OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -72,6 +73,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
@@ -84,6 +86,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import io.github.kioskrelay.startup.StartupPermissionSettings
+import io.github.kioskrelay.ui.remoteVerticalNavigation
+import io.github.kioskrelay.ui.BootDelaySlider
+import io.github.kioskrelay.ui.RemoteSwitch as SettingsSwitch
+import io.github.kioskrelay.ui.remoteFocus
+import io.github.kioskrelay.ui.initialFocus
 import io.github.kioskrelay.R
 import io.github.kioskrelay.config.AppLocale
 import io.github.kioskrelay.config.KioskRelayConfig
@@ -95,7 +102,6 @@ import io.github.kioskrelay.ui.rememberBrandImage
 import io.github.kioskrelay.ui.theme.KioskBackground
 import io.github.kioskrelay.ui.theme.KioskSurface
 import java.util.Locale
-import kotlin.math.roundToInt
 
 enum class SettingsSection {
     BRAND,
@@ -134,6 +140,21 @@ fun SettingsScreen(
 ) {
     var draft by remember(initialConfig) { mutableStateOf(initialConfig) }
     var section by rememberSaveable { mutableStateOf(SettingsSection.BRAND) }
+    val contentFocus = remember { FocusRequester() }
+    val navigationFocus = remember { SettingsSection.entries.map { FocusRequester() } }
+    val saveFocus = remember { FocusRequester() }
+    val contentNavigation = Modifier.focusRequester(contentFocus).focusProperties {
+        onExit = {
+            when (requestedFocusDirection) {
+                FocusDirection.Previous -> navigationFocus[section.ordinal].requestFocus()
+                FocusDirection.Next -> saveFocus.requestFocus()
+            }
+        }
+    }.focusGroup()
+    var enterContent by remember { mutableIntStateOf(0) }
+    LaunchedEffect(enterContent) {
+        if (enterContent > 0) contentFocus.requestFocus()
+    }
     var passwordDialog by rememberSaveable { mutableStateOf(false) }
     var pendingDestructiveAction by rememberSaveable {
         mutableStateOf<MaintenanceAction?>(null)
@@ -227,7 +248,7 @@ fun SettingsScreen(
                 Button(
                     onClick = { onSave(draft) },
                     enabled = !interactionBlocked,
-                    modifier = Modifier.testTag("settings-save"),
+                    modifier = Modifier.focusRequester(saveFocus).testTag("settings-save"),
                 ) {
                     Icon(Icons.Outlined.Check, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
@@ -247,6 +268,9 @@ fun SettingsScreen(
                     SettingsNavigation(
                         selected = section,
                         onSelected = { section = it },
+                        contentFocus = contentFocus,
+                        focusRequesters = navigationFocus,
+                        onEnterContent = { enterContent++ },
                         modifier = Modifier
                             .width(260.dp)
                             .fillMaxHeight(),
@@ -281,7 +305,7 @@ fun SettingsScreen(
                                 onMaintenanceAction(it, draft)
                             }
                         },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).then(contentNavigation),
                     )
                 }
             } else {
@@ -289,6 +313,9 @@ fun SettingsScreen(
                     SettingsNavigation(
                         selected = section,
                         onSelected = { section = it },
+                        contentFocus = contentFocus,
+                        focusRequesters = navigationFocus,
+                        onEnterContent = { enterContent++ },
                         horizontal = true,
                     )
                     SettingsContent(
@@ -321,7 +348,7 @@ fun SettingsScreen(
                                 onMaintenanceAction(it, draft)
                             }
                         },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).then(contentNavigation),
                     )
                 }
             }
@@ -366,7 +393,7 @@ fun SettingsScreen(
                 }
             },
             dismissButton = {
-                OutlinedButton(onClick = { confirmHttpEnable = false }) {
+                OutlinedButton(onClick = { confirmHttpEnable = false }, modifier = Modifier.initialFocus()) {
                     Text(stringResource(R.string.cancel))
                 }
             },
@@ -380,6 +407,9 @@ private fun SettingsNavigation(
     onSelected: (SettingsSection) -> Unit,
     modifier: Modifier = Modifier,
     horizontal: Boolean = false,
+    contentFocus: FocusRequester,
+    focusRequesters: List<FocusRequester>,
+    onEnterContent: () -> Unit,
 ) {
     val entries = listOf(
         Triple(SettingsSection.BRAND, R.string.settings_brand, Icons.Outlined.Palette),
@@ -388,9 +418,6 @@ private fun SettingsNavigation(
         Triple(SettingsSection.SECURITY, R.string.settings_security, Icons.Outlined.Security),
         Triple(SettingsSection.MAINTENANCE, R.string.settings_maintenance, Icons.Outlined.Build),
     )
-    val focusRequesters = remember {
-        List(entries.size) { FocusRequester() }
-    }
     LaunchedEffect(focusRequesters) {
         focusRequesters.first().requestFocus()
     }
@@ -404,20 +431,20 @@ private fun SettingsNavigation(
         ) {
             entries.forEachIndexed { index, (section, title, icon) ->
                 OutlinedButton(
-                    onClick = { onSelected(section) },
+                    onClick = { onSelected(section); onEnterContent() },
                     modifier = Modifier
                         .weight(1f)
                         .testTag("settings-section-${section.name.lowercase()}")
                         .focusRequester(focusRequesters[index])
+                        .onFocusChanged { if (it.isFocused) onSelected(section) }
                         .focusProperties {
+                            down = contentFocus
                             if (index > 0) {
                                 left = focusRequesters[index - 1]
-                                up = focusRequesters[index - 1]
                                 previous = focusRequesters[index - 1]
                             }
                             if (index < entries.lastIndex) {
                                 right = focusRequesters[index + 1]
-                                down = focusRequesters[index + 1]
                                 next = focusRequesters[index + 1]
                             }
                         },
@@ -446,20 +473,21 @@ private fun SettingsNavigation(
                         .fillMaxWidth()
                         .testTag("settings-section-${section.name.lowercase()}")
                         .focusRequester(focusRequesters[index])
+                        .onFocusChanged { if (it.isFocused) onSelected(section) }
                         .focusProperties {
+                            right = contentFocus
                             if (index > 0) {
-                                left = focusRequesters[index - 1]
                                 up = focusRequesters[index - 1]
                                 previous = focusRequesters[index - 1]
                             }
                             if (index < entries.lastIndex) {
-                                right = focusRequesters[index + 1]
                                 down = focusRequesters[index + 1]
                                 next = focusRequesters[index + 1]
                             }
                         }
                         .background(selectedBackground, RoundedCornerShape(12.dp))
-                        .clickable { onSelected(section) }
+                        .remoteFocus()
+                        .clickable { onSelected(section); onEnterContent() }
                         .padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -493,9 +521,11 @@ private fun SettingsContent(
     onAction: (MaintenanceAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val scroll = rememberScrollState()
+    LaunchedEffect(section) { scroll.scrollTo(0) }
     Column(
         modifier = modifier
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scroll)
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
@@ -560,7 +590,7 @@ private fun BrandSettings(
             onDraftChange(draft.copy(branding = draft.branding.copy(productName = it.take(60))))
         },
         label = { Text(stringResource(R.string.product_name)) },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.remoteVerticalNavigation().fillMaxWidth(),
         singleLine = true,
     )
     ColorField(
@@ -581,7 +611,7 @@ private fun BrandSettings(
             onDraftChange(draft.copy(branding = draft.branding.copy(loadingMessage = it.take(160))))
         },
         label = { Text(stringResource(R.string.loading_message)) },
-        modifier = Modifier
+        modifier = Modifier.remoteVerticalNavigation()
             .fillMaxWidth()
             .testTag("settings-loading-message"),
     )
@@ -591,7 +621,7 @@ private fun BrandSettings(
             onDraftChange(draft.copy(branding = draft.branding.copy(offlineMessage = it.take(160))))
         },
         label = { Text(stringResource(R.string.offline_message)) },
-        modifier = Modifier
+        modifier = Modifier.remoteVerticalNavigation()
             .fillMaxWidth()
             .testTag("settings-offline-message"),
     )
@@ -601,7 +631,7 @@ private fun BrandSettings(
             onDraftChange(draft.copy(branding = draft.branding.copy(errorMessage = it.take(160))))
         },
         label = { Text(stringResource(R.string.error_message)) },
-        modifier = Modifier
+        modifier = Modifier.remoteVerticalNavigation()
             .fillMaxWidth()
             .testTag("settings-error-message"),
     )
@@ -783,7 +813,7 @@ private fun WebSettings(
         },
         label = { Text(stringResource(R.string.dashboard_url)) },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
-        modifier = Modifier
+        modifier = Modifier.remoteVerticalNavigation()
             .fillMaxWidth()
             .testTag("settings-url"),
         singleLine = true,
@@ -804,7 +834,7 @@ private fun WebSettings(
         },
         label = { Text(stringResource(R.string.allowed_origins)) },
         supportingText = { Text(stringResource(R.string.allowed_origins_hint)) },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.remoteVerticalNavigation().fillMaxWidth(),
         minLines = 3,
     )
     SettingsSwitch(
@@ -855,7 +885,7 @@ private fun WebSettings(
         },
         label = { Text(stringResource(R.string.custom_user_agent)) },
         supportingText = { Text(stringResource(R.string.custom_user_agent_hint)) },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.remoteVerticalNavigation().fillMaxWidth(),
     )
 }
 
@@ -882,20 +912,9 @@ private fun RuntimeSettings(
     if (draft.runtime.bootStartEnabled) {
         StartupPermissionSettings()
         Text(stringResource(R.string.boot_delay, draft.runtime.bootDelaySeconds))
-        androidx.compose.material3.Slider(
-            value = draft.runtime.bootDelaySeconds.toFloat(),
-            onValueChange = {
-                onDraftChange(
-                    draft.copy(
-                        runtime = draft.runtime.copy(
-                            bootDelaySeconds = it.roundToInt().coerceIn(0, 60),
-                        ),
-                    ),
-                )
-            },
-            valueRange = 0f..60f,
-            steps = 11,
-        )
+        BootDelaySlider(draft.runtime.bootDelaySeconds) { seconds ->
+            onDraftChange(draft.copy(runtime = draft.runtime.copy(bootDelaySeconds = seconds)))
+        }
     }
     Text(
         stringResource(R.string.retry_schedule),
@@ -1021,7 +1040,7 @@ private fun ColorField(label: String, value: Long, onValue: (Long) -> Unit) {
                     .background(Color(value), RoundedCornerShape(6.dp)),
             )
         },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.remoteVerticalNavigation().fillMaxWidth(),
         singleLine = true,
     )
 }
@@ -1035,23 +1054,6 @@ private fun SettingsHeader(title: Int) {
     HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
 }
 
-@Composable
-private fun SettingsSwitch(
-    title: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onCheckedChange(!checked) }
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(title, modifier = Modifier.weight(1f))
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
-    }
-}
 
 @Composable
 private fun <T> ChoiceRow(
@@ -1087,6 +1089,7 @@ private fun ChangePasswordDialog(onDismiss: () -> Unit, onConfirm: (String) -> U
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
+                    modifier = Modifier.remoteVerticalNavigation(),
                     value = password,
                     onValueChange = { password = it.take(64) },
                     label = { Text(stringResource(R.string.new_password)) },
@@ -1095,6 +1098,7 @@ private fun ChangePasswordDialog(onDismiss: () -> Unit, onConfirm: (String) -> U
                     singleLine = true,
                 )
                 OutlinedTextField(
+                    modifier = Modifier.remoteVerticalNavigation(),
                     value = confirmation,
                     onValueChange = { confirmation = it.take(64) },
                     label = { Text(stringResource(R.string.confirm_password)) },
@@ -1111,7 +1115,7 @@ private fun ChangePasswordDialog(onDismiss: () -> Unit, onConfirm: (String) -> U
             }
         },
         dismissButton = {
-            OutlinedButton(onClick = onDismiss) {
+            OutlinedButton(onClick = onDismiss, modifier = Modifier.initialFocus()) {
                 Text(stringResource(R.string.cancel))
             }
         },
@@ -1129,7 +1133,7 @@ private fun ConfirmationDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
             }
         },
         dismissButton = {
-            OutlinedButton(onClick = onDismiss) {
+            OutlinedButton(onClick = onDismiss, modifier = Modifier.initialFocus()) {
                 Text(stringResource(R.string.cancel))
             }
         },

@@ -82,6 +82,10 @@ class WebViewController internal constructor(
         performLoad(target)
     }
 
+    fun requestFocus() {
+        webView?.requestFocus()
+    }
+
     fun goBackIfPossible(): Boolean {
         val activeView = webView ?: return false
         if (!activeView.canGoBack()) return false

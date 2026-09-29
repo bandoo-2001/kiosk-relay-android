@@ -3,7 +3,6 @@ package io.github.kioskrelay.feature.kiosk
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,11 +18,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
+import io.github.kioskrelay.ui.RemoteButton as Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import io.github.kioskrelay.ui.RemoteOutlinedButton as OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,8 +36,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.pointer.pointerInput
@@ -49,6 +46,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import io.github.kioskrelay.ui.initialFocus
+import io.github.kioskrelay.ui.remoteVerticalNavigation
 import io.github.kioskrelay.R
 import io.github.kioskrelay.config.KioskRelayConfig
 import io.github.kioskrelay.data.BrandImageImporter
@@ -77,7 +76,6 @@ fun KioskScreen(
     var showAuthentication by rememberSaveable { mutableStateOf(false) }
     var checkingAdminRequirement by remember { mutableStateOf(false) }
     val entryDetector = remember { AdminEntryDetector() }
-    val focusRequester = remember { FocusRequester() }
     val scope = rememberCoroutineScope()
 
     val requestAdminEntry: () -> Unit = {
@@ -102,6 +100,10 @@ fun KioskScreen(
         onDispose { registerTvAdminEntryHandler(null) }
     }
 
+    LaunchedEffect(state is KioskUiState.Online, showAuthentication) {
+        if (state is KioskUiState.Online && !showAuthentication) controller.requestFocus()
+    }
+
     BackHandler(enabled = true) {
         // At the configured root this intentionally consumes Back so kiosk users cannot leave.
         controller.goBackIfPossible()
@@ -110,8 +112,6 @@ fun KioskScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .focusRequester(focusRequester)
-            .focusable()
             .onPreviewKeyEvent { event ->
                 entryDetector.registerKeyEvent(event.nativeKeyEvent).also { matched ->
                     if (matched) requestAdminEntry()
@@ -145,10 +145,6 @@ fun KioskScreen(
                     }
                 },
         )
-    }
-
-    LaunchedEffect(focusRequester) {
-        runCatching { focusRequester.requestFocus() }
     }
 
     if (showAuthentication) {
@@ -247,7 +243,7 @@ private fun KioskStateOverlay(
                         },
                         style = MaterialTheme.typography.titleLarge,
                     )
-                    Button(onClick = onRetry) {
+                    Button(onClick = onRetry, modifier = Modifier.initialFocus()) {
                         Icon(Icons.Outlined.Refresh, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
                         Text(stringResource(R.string.retry_now))
@@ -264,7 +260,7 @@ private fun KioskStateOverlay(
                         state.description,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    Button(onClick = onRetry) {
+                    Button(onClick = onRetry, modifier = Modifier.initialFocus()) {
                         Icon(Icons.Outlined.Refresh, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
                         Text(stringResource(R.string.retry_now))
@@ -279,7 +275,7 @@ private fun KioskStateOverlay(
                             state.delayMillis / 1_000,
                         ),
                     )
-                    OutlinedButton(onClick = onRetry) {
+                    OutlinedButton(onClick = onRetry, modifier = Modifier.initialFocus()) {
                         Icon(Icons.Outlined.Refresh, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
                         Text(stringResource(R.string.retry_now))
@@ -300,7 +296,7 @@ private fun KioskStateOverlay(
                         state.reason,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    Button(onClick = onRetry) {
+                    Button(onClick = onRetry, modifier = Modifier.initialFocus()) {
                         Icon(Icons.Outlined.Refresh, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
                         Text(stringResource(R.string.retry_now))
@@ -341,7 +337,7 @@ internal fun AdminAuthenticationDialog(
                     isError = result != null,
                     enabled = !checking,
                     singleLine = true,
-                    modifier = Modifier.testTag("admin-password"),
+                    modifier = Modifier.initialFocus().remoteVerticalNavigation().testTag("admin-password"),
                 )
                 AuthenticationMessage(result)
             }

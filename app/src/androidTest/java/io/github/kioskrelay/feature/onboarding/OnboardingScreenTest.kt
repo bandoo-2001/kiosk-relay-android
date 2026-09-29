@@ -8,6 +8,14 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ApplicationProvider
 import io.github.kioskrelay.R
@@ -62,11 +70,17 @@ class OnboardingScreenTest {
 
         composeRule.onNodeWithTag(NEXT).performClick()
         composeRule.onNodeWithTag(NEXT).performClick()
-        composeRule.onNodeWithText(context.getString(R.string.allow_http)).performClick()
+        val toggle = composeRule.onNodeWithText(context.getString(R.string.allow_http))
+        toggle.performSemanticsAction(SemanticsActions.RequestFocus) { it() }
+        toggle.performKeyInput { pressKey(Key.DirectionCenter) }
 
         composeRule.onNodeWithText(
             context.getString(R.string.http_risk_confirm_title),
         ).assertExists()
+        val cancel = composeRule.onNodeWithText(context.getString(R.string.cancel))
+        cancel.assertIsFocused()
+        cancel.performKeyInput { pressKey(Key.DirectionCenter) }
+        composeRule.onNodeWithText(context.getString(R.string.http_risk_confirm_title)).assertDoesNotExist()
     }
 
     @Test
@@ -87,9 +101,24 @@ class OnboardingScreenTest {
         }
     }
 
-    private fun setScreen(onFinish: () -> Unit = {}) {
+    @Test
+    fun delaySlider_downLeavesValueUnchangedAndReachesFinish() {
+        setScreen(initialDraft = OnboardingDraft(url = "https://display.example.com/", bootLaunchEnabled = true))
+        repeat(3) { composeRule.onNodeWithTag(NEXT).performClick() }
+        val slider = composeRule.onNode(SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo))
+        slider.performSemanticsAction(SemanticsActions.RequestFocus) { it() }
+        slider.performKeyInput { pressKey(Key.DirectionRight) }
+        composeRule.onNodeWithText(ApplicationProvider.getApplicationContext<android.content.Context>().getString(R.string.boot_delay, 15)).assertExists()
+        slider.performKeyInput { pressKey(Key.DirectionDown) }
+        composeRule.onNodeWithText(ApplicationProvider.getApplicationContext<android.content.Context>().getString(R.string.boot_delay, 15)).assertExists()
+        composeRule.onNodeWithTag("onboarding-previous").assertIsFocused()
+        composeRule.onNodeWithTag("onboarding-previous").performKeyInput { pressKey(Key.DirectionRight) }
+        composeRule.onNodeWithTag(NEXT).assertIsFocused()
+    }
+
+    private fun setScreen(initialDraft: OnboardingDraft = OnboardingDraft(), onFinish: () -> Unit = {}) {
         composeRule.setContent {
-            var draft by remember { mutableStateOf(OnboardingDraft()) }
+            var draft by remember { mutableStateOf(initialDraft) }
             KioskRelayTheme {
                 OnboardingScreen(
                     draft = draft,

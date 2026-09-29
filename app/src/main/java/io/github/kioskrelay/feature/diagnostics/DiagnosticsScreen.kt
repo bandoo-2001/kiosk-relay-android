@@ -1,5 +1,9 @@
 package io.github.kioskrelay.feature.diagnostics
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.focusable
+import io.github.kioskrelay.ui.remoteFocus
+import io.github.kioskrelay.ui.initialFocus
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,10 +14,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
+import io.github.kioskrelay.ui.RemoteButton as Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import io.github.kioskrelay.ui.RemoteOutlinedButton as OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,6 +48,7 @@ fun DiagnosticsScreen(
     onClear: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    BackHandler(onBack = onBack)
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
@@ -64,7 +69,7 @@ fun DiagnosticsScreen(
                 Button(onClick = onExport) {
                     Text(stringResource(R.string.export_diagnostics))
                 }
-                OutlinedButton(onClick = onBack) {
+                OutlinedButton(onClick = onBack, modifier = Modifier.initialFocus()) {
                     Text(stringResource(R.string.back_to_settings))
                 }
             }
@@ -109,7 +114,7 @@ fun DiagnosticsScreen(
 
 @Composable
 private fun DeviceCard(device: DeviceDiagnostics) {
-    Card(Modifier.fillMaxWidth()) {
+    Card(Modifier.fillMaxWidth().remoteFocus().focusable()) {
         Column(
             modifier = Modifier.padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -134,7 +139,7 @@ private fun DeviceCard(device: DeviceDiagnostics) {
 
 @Composable
 private fun EventCard(event: DiagnosticEvent) {
-    Card(Modifier.fillMaxWidth()) {
+    Card(Modifier.fillMaxWidth().remoteFocus().focusable()) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),

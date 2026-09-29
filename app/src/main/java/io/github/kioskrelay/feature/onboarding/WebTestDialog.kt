@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import io.github.kioskrelay.ui.RemoteOutlinedButton as OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import io.github.kioskrelay.ui.initialFocus
 import io.github.kioskrelay.R
 import io.github.kioskrelay.web.KioskUiState
 import io.github.kioskrelay.web.WebViewHost
@@ -184,7 +185,7 @@ fun WebTestDialog(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.End,
                     ) {
-                        OutlinedButton(onClick = onDismiss) {
+                        OutlinedButton(onClick = onDismiss, modifier = Modifier.initialFocus()) {
                             Text(stringResource(R.string.close))
                         }
                     }

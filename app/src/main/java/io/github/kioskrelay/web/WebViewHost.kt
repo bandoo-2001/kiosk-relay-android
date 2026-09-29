@@ -45,6 +45,7 @@ fun WebViewHost(
     controller: WebViewController = rememberWebViewController(),
     networkMonitor: NetworkMonitor = rememberNetworkMonitor(),
     onStateChange: (KioskUiState) -> Unit = {},
+    requestInitialFocus: Boolean = false,
 ) {
     val networkAvailable by networkMonitor.isNetworkAvailable.collectAsState()
     val recreationKey by controller.recreationKey.collectAsState()
@@ -69,6 +70,7 @@ fun WebViewHost(
                 val client = secureWebViewClient(config.navigationPolicy, controller)
                 createSecureWebView(context, config, client).also { view ->
                     controller.attach(view, config)
+                    if (requestInitialFocus) view.requestFocus()
                 }
             },
             modifier = modifier,
@@ -99,6 +101,7 @@ fun KioskWebViewHost(
         controller = controller,
         networkMonitor = networkMonitor,
         onStateChange = onStateChange,
+        requestInitialFocus = true,
     )
 }
 

@@ -1,6 +1,10 @@
 package io.github.kioskrelay.feature.settings
 
-import android.view.KeyEvent
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.pressKey
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsFocused
@@ -11,7 +15,6 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ApplicationProvider
-import androidx.test.platform.app.InstrumentationRegistry
 import io.github.kioskrelay.R
 import io.github.kioskrelay.config.AppLocale
 import io.github.kioskrelay.config.ConfigDefaults
@@ -140,40 +143,40 @@ class SettingsScreenTest {
     }
 
     @Test
-    fun dpadRight_movesFocusAcrossSettingsSections() {
-        val instrumentation = InstrumentationRegistry.getInstrumentation()
-        instrumentation.setInTouchMode(true)
-        try {
-            setScreen()
-            composeRule.waitForIdle()
-            val brand = composeRule.onNodeWithTag("settings-section-brand")
-            val web = composeRule.onNodeWithTag("settings-section-web")
+    fun dpad_sidebarEntersContentAndFieldsCanBeLeft() {
+        setScreen()
+        val brand = composeRule.onNodeWithTag("settings-section-brand")
+        val web = composeRule.onNodeWithTag("settings-section-web")
+        brand.performSemanticsAction(SemanticsActions.RequestFocus) { it() }
+        // The TV uses a vertical sidebar; narrow screens use horizontal tabs.
+        val vertical = web.fetchSemanticsNode().boundsInRoot.top > brand.fetchSemanticsNode().boundsInRoot.top
+        brand.performKeyInput { pressKey(if (vertical) Key.DirectionDown else Key.DirectionRight) }
+        web.assertIsFocused()
+        web.performKeyInput { pressKey(if (vertical) Key.DirectionRight else Key.DirectionDown) }
+        composeRule.onNodeWithTag("settings-url").assertIsFocused()
+        composeRule.onNodeWithTag("settings-url").performKeyInput { pressKey(Key.DirectionUp) }
+        web.assertIsFocused()
+    }
 
-            fun brandIsFocused(): Boolean =
-                brand.fetchSemanticsNode().config.getOrElse(
-                    androidx.compose.ui.semantics.SemanticsProperties.Focused,
-                ) { false }
-
-            // Touch devices need one key to leave touch mode. A real TV starts outside
-            // touch mode, so the requested initial focus is already active.
-            if (!brandIsFocused()) {
-                instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_RIGHT)
-                composeRule.waitUntil(timeoutMillis = 2_000) {
-                    brandIsFocused()
-                }
-            }
-            brand.assertIsFocused()
-
-            instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_RIGHT)
-            composeRule.waitUntil(timeoutMillis = 2_000) {
-                web.fetchSemanticsNode().config.getOrElse(
-                    androidx.compose.ui.semantics.SemanticsProperties.Focused,
-                ) { false }
-            }
-            web.assertIsFocused()
-        } finally {
-            instrumentation.setInTouchMode(true)
-        }
+    @Test
+    fun runtimeDelay_dpadAdjustsBoundsAndLeavesForSave() {
+        setScreen(configured = configured().copy(runtime = ConfigDefaults.config.runtime.copy(bootStartEnabled = true)))
+        composeRule.onNodeWithTag("settings-section-runtime").performClick()
+        val toggle = composeRule.onNodeWithText(ApplicationProvider.getApplicationContext<android.content.Context>().getString(R.string.boot_launch))
+        toggle.performSemanticsAction(SemanticsActions.RequestFocus) { it() }
+        toggle.performKeyInput { pressKey(Key.DirectionCenter) }
+        composeRule.onNodeWithTag("boot-delay-slider").assertDoesNotExist()
+        toggle.assertIsFocused()
+        toggle.performKeyInput { pressKey(Key.DirectionCenter) }
+        val slider = composeRule.onNodeWithTag("boot-delay-slider")
+        slider.performSemanticsAction(SemanticsActions.RequestFocus) { it() }
+        slider.performKeyInput { repeat(20) { pressKey(Key.DirectionRight) } }
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        composeRule.onNodeWithText(context.getString(R.string.boot_delay, 60)).assertExists()
+        slider.performKeyInput { repeat(20) { pressKey(Key.DirectionLeft) } }
+        composeRule.onNodeWithText(context.getString(R.string.boot_delay, 0)).assertExists()
+        slider.performKeyInput { pressKey(Key.DirectionDown) }
+        composeRule.onNodeWithTag("settings-save").assertIsFocused()
     }
 
     private fun setScreen(
