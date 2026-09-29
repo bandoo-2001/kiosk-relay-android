@@ -25,4 +25,9 @@
     <string name="kiosk_offline">ネットワークに接続できません。復帰後に KioskRelay が再開します。</string><string name="kiosk_page_error">設定したページを読み込めませんでした。</string><string name="kiosk_fatal_error">連続したエラーのため自動復旧を停止しました。</string><string name="kiosk_retrying">%1$d 回目の再試行を %2$d 秒後に行います。</string><string name="kiosk_renderer_recovering">ウェブレンダラーが停止しました。安全に再構築しています…</string><string name="retry_now">今すぐ再試行</string>
     <string name="admin_unlock_title">管理者ロック解除</string><string name="unlock">ロック解除</string><string name="admin_not_configured">管理者パスワードが設定されていません。</string><string name="admin_invalid_password">パスワードが正しくありません。ロックまで残り %1$d 回です。</string><string name="admin_locked">失敗回数が多すぎます。%1$d 秒後に再試行してください。</string><string name="image_import_failed">画像の読み込みに失敗しました：%1$s</string>
     <string name="startup_notification_channel">ウェブ端末の起動復旧</string><string name="startup_notification_text">タップしてウェブ表示を復元</string>
+    <string name="startup_access_granted">起動の権限は許可されています。自動起動はテレビのファームウェアにも依存します。</string>
+    <string name="startup_access_needed">自動起動にはシステムの許可が必要です。未許可の場合は復元通知のみ表示します。</string>
+    <string name="startup_access_hint">このアプリに「他のアプリの上に表示」を許可し、戻って設定を保存してください。実際にオーバーレイは表示しません。テレビに自動起動やバックグラウンド動作の設定がある場合も許可してください。待機状態からの復帰は再起動ではありません。</string>
+    <string name="startup_access_open">自動起動を許可</string>
+    <string name="startup_settings_unavailable">システム設定を開けませんでした。テレビの設定から手動で許可してください。この権限がないファームウェアでは自動起動を保証できません。</string>
 </resources>

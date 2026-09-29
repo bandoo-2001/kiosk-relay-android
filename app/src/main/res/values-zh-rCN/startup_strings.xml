@@ -2,4 +2,9 @@
 <resources>
     <string name="startup_notification_channel">展示页启动恢复</string>
     <string name="startup_notification_text">点按以恢复网页展示</string>
+    <string name="startup_access_granted">已获得启动授权；自动启动仍取决于电视固件策略。</string>
+    <string name="startup_access_needed">自动启动需要系统授权；未授权时仅发送恢复通知。</string>
+    <string name="startup_access_hint">请允许本应用“显示在其他应用上层”，返回后保存设置。应用不会绘制悬浮窗。如电视另有自启动或后台运行管理，也需允许本应用。待机唤醒不等于重新开机。</string>
+    <string name="startup_access_open">授权开机启动</string>
+    <string name="startup_settings_unavailable">无法打开系统设置，请手动进入电视设置。固件不提供此权限时，无法保证自动启动。</string>
 </resources>

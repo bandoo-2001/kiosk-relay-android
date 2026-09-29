@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.provider.Settings
 import io.github.kioskrelay.R
 
 enum class StartupLaunchMode {
@@ -18,9 +19,9 @@ enum class StartupLaunchMode {
     ;
 
     companion object {
-        fun resolve(apiLevel: Int, enabled: Boolean): StartupLaunchMode = when {
+        fun resolve(apiLevel: Int, enabled: Boolean, overlayGranted: Boolean = false): StartupLaunchMode = when {
             !enabled -> DISABLED
-            apiLevel <= Build.VERSION_CODES.P -> DIRECT_ACTIVITY
+            apiLevel <= Build.VERSION_CODES.P || overlayGranted -> DIRECT_ACTIVITY
             else -> NOTIFICATION_FALLBACK
         }
     }
@@ -37,19 +38,34 @@ class StartupLauncher(
     private val fallbackNotifier: StartupFallbackNotifier,
 ) {
     fun launch(context: Context, request: StartupRequest): StartupLaunchMode {
-        val mode = StartupLaunchMode.resolve(Build.VERSION.SDK_INT, request.enabled)
+        val mode = StartupLaunchMode.resolve(
+            Build.VERSION.SDK_INT,
+            request.enabled,
+            overlayGranted = Settings.canDrawOverlays(context),
+        )
         when (mode) {
             StartupLaunchMode.DISABLED -> Unit
-            StartupLaunchMode.DIRECT_ACTIVITY -> launchMainActivity(context, request)
+            StartupLaunchMode.DIRECT_ACTIVITY -> {
+                // A vendor can silently block startActivity; retain recovery until onResume.
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    fallbackNotifier.show(context.applicationContext, request)
+                }
+                if (!launchMainActivity(context, request)) {
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                        fallbackNotifier.show(context.applicationContext, request)
+                    }
+                    return StartupLaunchMode.NOTIFICATION_FALLBACK
+                }
+            }
             StartupLaunchMode.NOTIFICATION_FALLBACK ->
                 fallbackNotifier.show(context.applicationContext, request)
         }
         return mode
     }
 
-    private fun launchMainActivity(context: Context, request: StartupRequest) {
-        val intent = mainLaunchIntent(context, request) ?: return
-        runCatching { context.startActivity(intent) }
+    private fun launchMainActivity(context: Context, request: StartupRequest): Boolean {
+        val intent = mainLaunchIntent(context, request) ?: return false
+        return runCatching { context.startActivity(intent) }.isSuccess
     }
 
     companion object {
@@ -74,6 +90,10 @@ object SystemStartupFallbackNotifier : StartupFallbackNotifier {
     private const val CHANNEL_ID = "kiosk_startup_restore"
     private const val NOTIFICATION_ID = 1_041
     private const val PENDING_INTENT_REQUEST_CODE = 1_042
+
+    fun dismiss(context: Context) {
+        context.getSystemService(NotificationManager::class.java).cancel(NOTIFICATION_ID)
+    }
 
     override fun show(context: Context, request: StartupRequest): Boolean {
         if (

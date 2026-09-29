@@ -2,4 +2,9 @@
 <resources>
     <string name="startup_notification_channel">Kiosk startup recovery</string>
     <string name="startup_notification_text">Tap to restore the kiosk display</string>
+    <string name="startup_access_granted">Startup access granted; automatic launch still depends on TV firmware.</string>
+    <string name="startup_access_needed">Automatic startup needs system authorization. Without it, only a recovery notification is posted.</string>
+    <string name="startup_access_hint">Allow this app to display over other apps, then return and save. No overlay is drawn. If your TV has auto-start or background controls, allow this app there too. Standby wake is not a reboot.</string>
+    <string name="startup_access_open">Authorize automatic startup</string>
+    <string name="startup_settings_unavailable">System settings could not be opened. Use the TV settings manually; firmware without this permission cannot guarantee automatic startup.</string>
 </resources>

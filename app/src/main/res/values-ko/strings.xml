@@ -25,4 +25,9 @@
     <string name="kiosk_offline">네트워크를 사용할 수 없습니다. 복구되면 KioskRelay가 계속됩니다.</string><string name="kiosk_page_error">설정된 웹페이지를 불러올 수 없습니다.</string><string name="kiosk_fatal_error">반복된 실패로 자동 복구가 중지되었습니다.</string><string name="kiosk_retrying">%1$d번째 재시도가 %2$d초 후 실행됩니다.</string><string name="kiosk_renderer_recovering">웹 렌더러가 중지되었습니다. 안전하게 다시 구성하는 중…</string><string name="retry_now">지금 재시도</string>
     <string name="admin_unlock_title">관리자 잠금 해제</string><string name="unlock">잠금 해제</string><string name="admin_not_configured">관리자 비밀번호가 설정되지 않았습니다.</string><string name="admin_invalid_password">비밀번호가 올바르지 않습니다. 잠금 전 %1$d회 남았습니다.</string><string name="admin_locked">실패 횟수가 너무 많습니다. %1$d초 후 다시 시도하세요.</string><string name="image_import_failed">이미지 가져오기 실패: %1$s</string>
     <string name="startup_notification_channel">웹 단말기 시작 복구</string><string name="startup_notification_text">탭하여 웹 화면 복원</string>
+    <string name="startup_access_granted">시작 권한이 허용되었습니다. 자동 시작은 TV 펌웨어 정책에 따라 달라집니다.</string>
+    <string name="startup_access_needed">자동 시작에는 시스템 권한이 필요합니다. 권한이 없으면 복원 알림만 표시합니다.</string>
+    <string name="startup_access_hint">이 앱의 다른 앱 위에 표시 권한을 허용한 후 돌아와 설정을 저장하세요. 실제 오버레이는 표시하지 않습니다. TV에 자동 시작 또는 백그라운드 실행 설정이 있다면 이 앱을 허용하세요. 대기 모드 해제는 재부팅이 아닙니다.</string>
+    <string name="startup_access_open">자동 시작 권한 허용</string>
+    <string name="startup_settings_unavailable">시스템 설정을 열 수 없습니다. TV 설정에서 수동으로 허용하세요. 이 권한을 제공하지 않는 펌웨어에서는 자동 시작을 보장할 수 없습니다.</string>
 </resources>

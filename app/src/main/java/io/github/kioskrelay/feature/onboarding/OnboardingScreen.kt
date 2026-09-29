@@ -63,6 +63,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import io.github.kioskrelay.startup.StartupPermissionSettings
 import io.github.kioskrelay.R
 import io.github.kioskrelay.config.BrandingConfig
 import io.github.kioskrelay.data.BrandImageImporter
@@ -710,6 +711,7 @@ private fun SecurityStep(
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
     if (draft.bootLaunchEnabled) {
+        StartupPermissionSettings()
         Spacer(Modifier.height(16.dp))
         Text(stringResource(R.string.boot_delay, draft.bootDelaySeconds))
         Slider(

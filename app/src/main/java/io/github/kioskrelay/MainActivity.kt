@@ -12,6 +12,7 @@ import io.github.kioskrelay.config.AppLocale
 import io.github.kioskrelay.config.KioskRelayConfig
 import io.github.kioskrelay.config.ScreenOrientation
 import io.github.kioskrelay.startup.StartupLauncher
+import io.github.kioskrelay.startup.SystemStartupFallbackNotifier
 import io.github.kioskrelay.security.AdminEntryDetector
 import io.github.kioskrelay.ui.theme.KioskRelayTheme
 import io.github.kioskrelay.web.ImmersiveModeController
@@ -39,6 +40,11 @@ class MainActivity : AppCompatActivity() {
                 )
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        SystemStartupFallbackNotifier.dismiss(this)
     }
 
     private fun applyPresentationPolicy(config: KioskRelayConfig) {

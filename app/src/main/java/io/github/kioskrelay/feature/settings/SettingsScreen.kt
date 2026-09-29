@@ -83,6 +83,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import io.github.kioskrelay.startup.StartupPermissionSettings
 import io.github.kioskrelay.R
 import io.github.kioskrelay.config.AppLocale
 import io.github.kioskrelay.config.KioskRelayConfig
@@ -879,6 +880,7 @@ private fun RuntimeSettings(
         onDraftChange(draft.copy(runtime = draft.runtime.copy(bootStartEnabled = it)))
     }
     if (draft.runtime.bootStartEnabled) {
+        StartupPermissionSettings()
         Text(stringResource(R.string.boot_delay, draft.runtime.bootDelaySeconds))
         androidx.compose.material3.Slider(
             value = draft.runtime.bootDelaySeconds.toFloat(),

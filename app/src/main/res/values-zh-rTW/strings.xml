@@ -42,4 +42,9 @@
     <string name="admin_unlock_title">管理員解鎖</string><string name="unlock">解鎖</string><string name="admin_not_configured">尚未設定管理員密碼。</string><string name="admin_invalid_password">密碼錯誤，鎖定前還可嘗試 %1$d 次。</string><string name="admin_locked">失敗次數過多，請在 %1$d 秒後再試。</string>
     <string name="image_import_failed">圖片匯入失敗：%1$s</string>
     <string name="startup_notification_channel">網頁終端啟動恢復</string><string name="startup_notification_text">點按以恢復網頁顯示</string>
+    <string name="startup_access_granted">已取得啟動授權；自動啟動仍取決於電視韌體策略。</string>
+    <string name="startup_access_needed">自動啟動需要系統授權；未授權時僅傳送恢復通知。</string>
+    <string name="startup_access_hint">請允許本應用程式「顯示在其他應用程式上層」，返回後儲存設定。本應用程式不會繪製懸浮視窗。如電視另有自動啟動或背景執行管理，也需允許本應用程式。待機喚醒不等於重新開機。</string>
+    <string name="startup_access_open">授權開機啟動</string>
+    <string name="startup_settings_unavailable">無法開啟系統設定，請手動進入電視設定。韌體不提供此權限時，無法保證自動啟動。</string>
 </resources>

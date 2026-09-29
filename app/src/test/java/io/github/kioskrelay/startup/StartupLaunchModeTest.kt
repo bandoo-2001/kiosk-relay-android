@@ -42,6 +42,22 @@ class StartupLaunchModeTest {
     }
 
     @Test
+    fun `android 11 launches only with background launch authorization`() {
+        assertEquals(
+            StartupLaunchMode.DIRECT_ACTIVITY,
+            StartupLaunchMode.resolve(30, enabled = true, overlayGranted = true),
+        )
+        assertEquals(
+            StartupLaunchMode.NOTIFICATION_FALLBACK,
+            StartupLaunchMode.resolve(30, enabled = true, overlayGranted = false),
+        )
+        assertEquals(
+            StartupLaunchMode.DISABLED,
+            StartupLaunchMode.resolve(30, enabled = false, overlayGranted = true),
+        )
+    }
+
+    @Test
     fun `boot delay is bounded to one minute`() {
         StartupRequest(enabled = true, delaySeconds = 60)
 

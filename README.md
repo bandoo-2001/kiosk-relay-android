@@ -64,7 +64,7 @@ matrix are also still required.
 - Versioned `.kioskrelay` ZIP import/export with size, schema, image, and path
   traversal checks; credentials, cookies, cache, and diagnostics are excluded
 - Best-effort boot handling: direct launch on API 24–28 and a notification
-  fallback on API 29+
+  fallback on API 29+ unless the user grants display-over-other-apps access
 - Android TV launcher declaration, D-pad-friendly controls, adaptive icons,
   Android 7 density icons, and a 320×180 TV banner
 
@@ -115,9 +115,13 @@ distribution.
 - See the strict test report for known defects and coverage boundaries. In
   particular, synthetic instrumentation callbacks do not prove real HTTP 302,
   renderer-crash, or target-hardware behavior.
-- API 29+ restricts background Activity launches. Standard mode posts a
-  best-effort notification or resumes on the next user launch; it does not
-  promise that the kiosk will appear automatically after boot.
+- API 29+ (including Android 11 TV) attempts direct boot launch when display-over-other-apps
+  access is granted through onboarding or Runtime settings. No overlay is drawn.
+  A recovery notification remains until the app resumes in case vendor firmware blocks launch.
+  Without access, only the notification fallback is used. Save boot settings after granting access.
+  Hisense 55E3NH Pro has not been tested on hardware; firmware must allow this access and
+  any vendor auto-start policy. Open the app once after installation or force-stop.
+  Validate reboot, power-cycle, and standby wake separately: standby need not send BOOT_COMPLETED.
 - Android 7 should be used only with trusted intranet pages and a controlled
   WebView package. Public unattended deployments should use a newer Android
   release.
