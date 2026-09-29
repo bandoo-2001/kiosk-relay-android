@@ -9,6 +9,8 @@ package io.github.kioskrelay.web
 sealed interface KioskUiState {
     data object Starting : KioskUiState
 
+    data class CompatibilityWarning(val version: String) : KioskUiState
+
     data class Loading(
         val url: String,
     ) : KioskUiState

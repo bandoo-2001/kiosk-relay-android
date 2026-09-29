@@ -47,4 +47,12 @@
     <string name="startup_access_hint">請允許本應用程式「顯示在其他應用程式上層」，返回後儲存設定。本應用程式不會繪製懸浮視窗。如電視另有自動啟動或背景執行管理，也需允許本應用程式。待機喚醒不等於重新開機。</string>
     <string name="startup_access_open">授權開機啟動</string>
     <string name="startup_settings_unavailable">無法開啟系統設定，請手動進入電視設定。韌體不提供此權限時，無法保證自動啟動。</string>
+    <string name="web_load_timeout">網頁載入超過 30 秒，請檢查網址和電視到目標伺服器的網路。WebView：%1$s。</string>
+    <string name="web_blank_timeout">網頁在 30 秒內未產生可顯示內容，可能是網頁或繪製與電視 WebView（%1$s）不相容。請升級系統 WebView 或使用相容版網頁。</string>
+    <string name="web_engine_title">網頁核心相容性檢查</string>
+    <string name="web_engine_old">目前核心過舊或無法識別。目前看板使用的 JavaScript 語法至少需要 Chromium 80，但達到此版本不代表完全相容。請透過電視廠商或系統應用程式商店更新；舊版相容網頁可選擇繼續嘗試載入。</string>
+    <string name="web_engine_missing">未找到可用的系統 WebView。請在電視系統設定中啟用或更新 WebView，或聯絡電視廠商。</string>
+    <string name="web_system_settings">開啟系統設定</string>
+    <string name="web_try_anyway">仍然嘗試載入</string>
+    <string name="web_settings_unavailable">電視未提供此設定入口。</string>
 </resources>

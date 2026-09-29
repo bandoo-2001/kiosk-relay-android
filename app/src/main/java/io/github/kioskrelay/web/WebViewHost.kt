@@ -11,6 +11,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
@@ -47,6 +49,16 @@ fun WebViewHost(
     onStateChange: (KioskUiState) -> Unit = {},
     requestInitialFocus: Boolean = false,
 ) {
+    val context = LocalContext.current
+    val compatibility = remember(context) { inspectWebView(context) }
+    var continueAnyway by remember(config.initialUrl, compatibility) { mutableStateOf(false) }
+    if (needsCompatibilityWarning(compatibility.major) && !continueAnyway) {
+        LaunchedEffect(compatibility) {
+            onStateChange(KioskUiState.CompatibilityWarning(compatibility.label))
+        }
+        WebViewCompatibilityNotice(compatibility, modifier) { continueAnyway = true }
+        return
+    }
     val networkAvailable by networkMonitor.isNetworkAvailable.collectAsState()
     val recreationKey by controller.recreationKey.collectAsState()
     val latestStateListener by rememberUpdatedState(onStateChange)

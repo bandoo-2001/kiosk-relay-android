@@ -168,9 +168,22 @@ fun WebTestDialog(
                         ) {
                             CircularProgressIndicator()
                         }
+                        val failureDetail = when (val current = state) {
+                            is KioskUiState.Fatal -> current.reason
+                            is KioskUiState.PageError -> current.description
+                            else -> null
+                        }
+                        failureDetail?.let {
+                            Surface(modifier = Modifier.fillMaxSize()) {
+                                Box(Modifier.padding(16.dp), contentAlignment = Alignment.Center) {
+                                    Text(it)
+                                }
+                            }
+                        }
                     }
                     Text(
                         when (state) {
+                            is KioskUiState.CompatibilityWarning -> stringResource(R.string.web_engine_title)
                             is KioskUiState.Online -> stringResource(R.string.test_succeeded)
                             is KioskUiState.Offline,
                             is KioskUiState.PageError,

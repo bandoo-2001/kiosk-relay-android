@@ -35,4 +35,12 @@
     <string name="startup_access_hint">Permite que esta aplicación se muestre sobre otras aplicaciones, vuelve y guarda los ajustes. No se dibuja ninguna superposición. Si el televisor tiene controles de inicio automático o de segundo plano, permite también esta aplicación. Salir del modo de espera no equivale a reiniciar.</string>
     <string name="startup_access_open">Autorizar inicio automático</string>
     <string name="startup_settings_unavailable">No se pudieron abrir los ajustes del sistema. Usa los ajustes del televisor manualmente; sin este permiso en el firmware no se puede garantizar el inicio automático.</string>
+    <string name="web_load_timeout">La página no terminó de cargar en 30 segundos. Compruebe la URL y la red del televisor. WebView: %1$s.</string>
+    <string name="web_blank_timeout">La página no mostró contenido en 30 segundos. Puede ser incompatible con WebView (%1$s). Actualice WebView o use una página compatible.</string>
+    <string name="web_engine_title">Compatibilidad de WebView</string>
+    <string name="web_engine_old">El motor es antiguo o no se pudo identificar. El panel actual usa JavaScript que requiere Chromium 80 o posterior; esto no garantiza compatibilidad completa. Actualice mediante el fabricante o la tienda del sistema. Puede intentar cargar páginas antiguas compatibles.</string>
+    <string name="web_engine_missing">No se encontró un WebView utilizable. Actívelo o actualícelo en los ajustes del televisor, o contacte al fabricante.</string>
+    <string name="web_system_settings">Abrir ajustes del sistema</string>
+    <string name="web_try_anyway">Intentar cargar de todos modos</string>
+    <string name="web_settings_unavailable">Este televisor no ofrece esta opción de ajustes.</string>
 </resources>

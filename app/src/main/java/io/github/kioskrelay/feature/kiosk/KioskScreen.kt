@@ -132,6 +132,7 @@ fun KioskScreen(
             config = config,
             imageImporter = imageImporter,
             onRetry = controller::reload,
+            onOpenSettings = requestAdminEntry,
         )
 
         // There is deliberately no visible Release affordance over the customer webpage.
@@ -165,8 +166,9 @@ private fun KioskStateOverlay(
     config: KioskRelayConfig,
     imageImporter: BrandImageImporter,
     onRetry: () -> Unit,
+    onOpenSettings: () -> Unit,
 ) {
-    if (state is KioskUiState.Online) return
+    if (state is KioskUiState.Online || state is KioskUiState.CompatibilityWarning) return
     if (state is KioskUiState.Starting || state is KioskUiState.Loading) {
         Box(
             Modifier
@@ -233,6 +235,7 @@ private fun KioskStateOverlay(
                 style = MaterialTheme.typography.headlineMedium,
             )
             when (state) {
+                is KioskUiState.CompatibilityWarning,
                 KioskUiState.Starting,
                 is KioskUiState.Loading,
                 -> Unit
@@ -303,6 +306,9 @@ private fun KioskStateOverlay(
                     }
                 }
                 is KioskUiState.Online -> Unit
+            }
+            OutlinedButton(onClick = onOpenSettings) {
+                Text(stringResource(R.string.settings_title))
             }
         }
     }

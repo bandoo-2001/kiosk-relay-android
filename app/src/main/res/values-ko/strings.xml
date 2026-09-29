@@ -30,4 +30,12 @@
     <string name="startup_access_hint">이 앱의 다른 앱 위에 표시 권한을 허용한 후 돌아와 설정을 저장하세요. 실제 오버레이는 표시하지 않습니다. TV에 자동 시작 또는 백그라운드 실행 설정이 있다면 이 앱을 허용하세요. 대기 모드 해제는 재부팅이 아닙니다.</string>
     <string name="startup_access_open">자동 시작 권한 허용</string>
     <string name="startup_settings_unavailable">시스템 설정을 열 수 없습니다. TV 설정에서 수동으로 허용하세요. 이 권한을 제공하지 않는 펌웨어에서는 자동 시작을 보장할 수 없습니다.</string>
+    <string name="web_load_timeout">웹페이지 로딩이 30초를 초과했습니다. URL과 TV 네트워크를 확인하세요. WebView: %1$s.</string>
+    <string name="web_blank_timeout">30초 내에 표시할 콘텐츠가 나타나지 않았습니다. 웹페이지 또는 렌더링이 WebView(%1$s)와 호환되지 않을 수 있습니다. WebView를 업데이트하거나 호환 페이지를 사용하세요.</string>
+    <string name="web_engine_title">WebView 호환성 확인</string>
+    <string name="web_engine_old">엔진이 오래되었거나 식별할 수 없습니다. 현재 대시보드의 JavaScript 문법은 Chromium 80 이상이 필요하지만 완전한 호환성을 보장하지는 않습니다. TV 제조사 또는 시스템 앱 스토어에서 업데이트하세요. 이전 호환 페이지는 로딩을 시도할 수 있습니다.</string>
+    <string name="web_engine_missing">사용 가능한 시스템 WebView를 찾을 수 없습니다. TV 설정에서 활성화 또는 업데이트하거나 제조사에 문의하세요.</string>
+    <string name="web_system_settings">시스템 설정 열기</string>
+    <string name="web_try_anyway">그래도 로딩 시도</string>
+    <string name="web_settings_unavailable">이 TV에는 해당 설정 화면이 없습니다.</string>
 </resources>

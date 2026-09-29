@@ -1474,6 +1474,7 @@ private fun DeviceDiagnostics.asExportHeader(): String = buildString {
 }
 
 private fun KioskUiState.toDiagnosticMessage(): String = when (this) {
+    is KioskUiState.CompatibilityWarning -> "WebView compatibility: $version"
     KioskUiState.Starting -> "Starting"
     is KioskUiState.Loading -> "Loading $url"
     is KioskUiState.Online -> "Online $url"
@@ -1485,6 +1486,7 @@ private fun KioskUiState.toDiagnosticMessage(): String = when (this) {
 }
 
 private fun KioskUiState.diagnosticLevel(): DiagnosticLevel = when (this) {
+    is KioskUiState.CompatibilityWarning,
     KioskUiState.Starting,
     is KioskUiState.Loading,
     is KioskUiState.Online,

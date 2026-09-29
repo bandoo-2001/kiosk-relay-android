@@ -185,7 +185,7 @@ class SecureWebViewInstrumentedTest {
     }
 
     @Test
-    fun subresourceSslError_afterMainPageFinishes_keepsPageOnline() {
+    fun subresourceSslError_afterDocumentFinishes_keepsWaitingForRenderedContent() {
         lateinit var controller: WebViewController
         val runtime = requireNotNull(
             WebViewRuntimeConfig.forPageProbe(
@@ -214,7 +214,7 @@ class SecureWebViewInstrumentedTest {
             )
         }
 
-        assertTrue(controller.state.value is KioskUiState.Online)
+        assertTrue(controller.state.value is KioskUiState.Loading)
     }
 
     @Test

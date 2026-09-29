@@ -4,6 +4,10 @@ import android.webkit.CookieManager
 import android.webkit.WebView
 import android.os.Build
 import io.github.kioskrelay.BuildConfig
+import io.github.kioskrelay.R
+import androidx.webkit.WebViewCompat
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -14,6 +18,7 @@ import kotlinx.coroutines.launch
 
 class WebViewController internal constructor(
     private val scope: CoroutineScope,
+    private val pageTimeoutMillis: Long = 30_000L,
 ) : SecureWebViewEvents {
     private val _state = MutableStateFlow<KioskUiState>(KioskUiState.Starting)
     val state: StateFlow<KioskUiState> = _state.asStateFlow()
@@ -24,6 +29,11 @@ class WebViewController internal constructor(
     private var webView: WebView? = null
     private var config: WebViewRuntimeConfig? = null
     private var retryJob: Job? = null
+    private var timeoutJob: Job? = null
+    private var readinessJob: Job? = null
+    private var pageGeneration = 0L
+    private var documentFinished = false
+    private var pageReady = false
     private var lastRequestedUrl: String? = null
     private var pageFailed = false
     private var consecutiveFailures = 0
@@ -38,6 +48,7 @@ class WebViewController internal constructor(
         val previousConfig = config
         webView = view
         config = newConfig
+        cancelPageReadiness()
         pageFailed = false
 
         if (previousConfig != newConfig) {
@@ -60,6 +71,7 @@ class WebViewController internal constructor(
 
     internal fun detach(view: WebView) {
         if (webView !== view) return
+        cancelPageReadiness()
         retryJob?.cancel()
         retryJob = null
         webView = null
@@ -113,6 +125,7 @@ class WebViewController internal constructor(
         networkAvailable = isAvailable
 
         if (!isAvailable) {
+            cancelPageReadiness()
             retryJob?.cancel()
             retryJob = null
             _state.value = KioskUiState.Offline(
@@ -128,7 +141,8 @@ class WebViewController internal constructor(
             performLoad(lastRequestedUrl ?: activeConfig.initialUrl)
         } else {
             val url = webView?.url ?: lastRequestedUrl
-            if (url != null) _state.value = KioskUiState.Online(url)
+            if (url != null && pageReady) _state.value = KioskUiState.Online(url)
+            else performLoad(lastRequestedUrl ?: activeConfig.initialUrl)
         }
     }
 
@@ -146,6 +160,7 @@ class WebViewController internal constructor(
     }
 
     internal fun destroy() {
+        cancelPageReadiness()
         retryJob?.cancel()
         retryJob = null
         webView = null
@@ -157,7 +172,7 @@ class WebViewController internal constructor(
         if (webView !== view) return
         pageFailed = false
         lastRequestedUrl = url
-        _state.value = KioskUiState.Loading(url)
+        startPageReadiness(url)
     }
 
     override fun onPageFinished(view: WebView, url: String) {
@@ -167,11 +182,37 @@ class WebViewController internal constructor(
             onNavigationBlocked(view, url)
             return
         }
-        retryJob?.cancel()
-        retryJob = null
-        resetFailureCounters()
-        lastRequestedUrl = url
-        _state.value = KioskUiState.Online(url)
+        if (url != lastRequestedUrl) return
+        documentFinished = true
+        val generation = pageGeneration
+        readinessJob?.cancel()
+        readinessJob = scope.launch {
+            // onPageFinished alone does not mean the DOM can be drawn (Android WebView contract).
+            suspendCancellableCoroutine<Unit> { continuation ->
+                view.postVisualStateCallback(generation, object : WebView.VisualStateCallback() {
+                    override fun onComplete(requestId: Long) {
+                        if (continuation.isActive) continuation.resume(Unit)
+                    }
+                })
+            }
+            while (webView === view && generation == pageGeneration && !pageFailed) {
+                val hasContent = !activeConfig.javaScriptEnabled || suspendCancellableCoroutine { continuation ->
+                    view.evaluateJavascript(VISIBLE_CONTENT_SCRIPT) { result ->
+                        if (continuation.isActive) continuation.resume(result == "true")
+                    }
+                }
+                if (hasContent && generation == pageGeneration && !pageFailed) {
+                    timeoutJob?.cancel()
+                    timeoutJob = null
+                    resetFailureCounters()
+                    lastRequestedUrl = url
+                    pageReady = true
+                    _state.value = KioskUiState.Online(url)
+                    break
+                }
+                delay(250)
+            }
+        }
     }
 
     override fun onMainFrameError(
@@ -182,6 +223,7 @@ class WebViewController internal constructor(
     ) {
         if (webView !== view || pageFailed) return
         pageFailed = true
+        cancelPageReadiness()
         handlePageFailure(
             url = url ?: lastRequestedUrl,
             errorCode = errorCode,
@@ -191,6 +233,8 @@ class WebViewController internal constructor(
 
     override fun onNavigationBlocked(view: WebView, url: String) {
         if (webView !== view) return
+        pageFailed = true
+        cancelPageReadiness()
         retryJob?.cancel()
         retryJob = null
         _state.value = KioskUiState.PageError(
@@ -205,6 +249,7 @@ class WebViewController internal constructor(
         val loadingState = _state.value as? KioskUiState.Loading ?: return
         if (url != null && url != loadingState.url && url != view.url) return
         pageFailed = true
+        cancelPageReadiness()
         retryJob?.cancel()
         retryJob = null
         _state.value = KioskUiState.Fatal(
@@ -215,6 +260,7 @@ class WebViewController internal constructor(
 
     override fun onRendererGone(view: WebView, didCrash: Boolean) {
         if (webView !== view) return
+        cancelPageReadiness()
         retryJob?.cancel()
         retryJob = null
         consecutiveRendererFailures += 1
@@ -281,6 +327,7 @@ class WebViewController internal constructor(
 
     private fun performLoad(url: String) {
         val activeConfig = config ?: return
+        cancelPageReadiness()
         if (!activeConfig.navigationPolicy.isAllowed(url)) {
             retryJob?.cancel()
             retryJob = null
@@ -297,7 +344,38 @@ class WebViewController internal constructor(
         }
         pageFailed = false
         lastRequestedUrl = url
+        startPageReadiness(url)
         webView?.loadUrl(url)
+    }
+
+    private fun cancelPageReadiness() {
+        pageGeneration++
+        timeoutJob?.cancel()
+        timeoutJob = null
+        readinessJob?.cancel()
+        readinessJob = null
+    }
+
+    private fun startPageReadiness(url: String) {
+        cancelPageReadiness()
+        documentFinished = false
+        pageReady = false
+        _state.value = KioskUiState.Loading(url)
+        val view = webView ?: return
+        timeoutJob = scope.launch {
+            delay(pageTimeoutMillis)
+            pageFailed = true
+            readinessJob?.cancel()
+            view.stopLoading()
+            val version = WebViewCompat.getCurrentWebViewPackage(view.context)?.versionName ?: "unknown"
+            _state.value = KioskUiState.Fatal(
+                lastUrl = url,
+                reason = view.context.getString(
+                    if (documentFinished) R.string.web_blank_timeout else R.string.web_load_timeout,
+                    version,
+                ),
+            )
+        }
     }
 
     private fun resetFailureCounters() {
@@ -308,6 +386,17 @@ class WebViewController internal constructor(
     }
 
     companion object {
+        // Read only a boolean; never copy webpage text, tokens or form values into diagnostics.
+        private const val VISIBLE_CONTENT_SCRIPT = """(function(){
+            var b=document.body;if(!b)return false;
+            if((b.innerText||'').replace(/\s/g,'').length)return true;
+            var nodes=b.querySelectorAll('canvas,svg,img,video,iframe,object,embed,input,button');
+            for(var i=0;i<nodes.length;i++){if(nodes[i].getClientRects().length)return true;}
+            var all=b.getElementsByTagName('*');
+            for(var j=0;j<all.length;j++){if(all[j].shadowRoot&&all[j].getClientRects().length)return true;}
+            return false;
+        })()"""
+
         const val ERROR_NAVIGATION_BLOCKED: Int = -10_001
         private const val MAX_RENDERER_RECREATIONS = 3
         private const val MAX_ERROR_LENGTH = 500

@@ -2,4 +2,12 @@
 <resources>
     <string name="default_offline_message">网络不可用，正在重新连接…</string>
     <string name="brand_default_error_message">网页暂时无法显示，请稍后重试。</string>
+    <string name="web_load_timeout">网页加载超过 30 秒，请检查网址和电视到目标服务器的网络。WebView：%1$s。</string>
+    <string name="web_blank_timeout">网页在 30 秒内未产生可显示内容，可能是网页或渲染与电视 WebView（%1$s）不兼容。请升级系统 WebView 或使用兼容版网页。</string>
+    <string name="web_engine_title">网页内核兼容检查</string>
+    <string name="web_engine_old">当前内核过旧或无法识别。当前大屏使用的 JavaScript 语法至少需要 Chromium 80，但达到此版本不代表完全兼容。请通过电视厂商或系统应用商店更新；旧版兼容网页可选择继续尝试加载。</string>
+    <string name="web_engine_missing">未找到可用的系统 WebView。请在电视系统设置中启用或更新 WebView，或联系电视厂商。</string>
+    <string name="web_system_settings">打开系统设置</string>
+    <string name="web_try_anyway">仍然尝试加载</string>
+    <string name="web_settings_unavailable">电视未提供此设置入口。</string>
 </resources>

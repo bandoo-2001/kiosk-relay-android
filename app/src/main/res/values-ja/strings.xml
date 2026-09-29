@@ -30,4 +30,12 @@
     <string name="startup_access_hint">このアプリに「他のアプリの上に表示」を許可し、戻って設定を保存してください。実際にオーバーレイは表示しません。テレビに自動起動やバックグラウンド動作の設定がある場合も許可してください。待機状態からの復帰は再起動ではありません。</string>
     <string name="startup_access_open">自動起動を許可</string>
     <string name="startup_settings_unavailable">システム設定を開けませんでした。テレビの設定から手動で許可してください。この権限がないファームウェアでは自動起動を保証できません。</string>
+    <string name="web_load_timeout">ページの読み込みが30秒でタイムアウトしました。URLとテレビのネットワークを確認してください。WebView：%1$s。</string>
+    <string name="web_blank_timeout">30秒以内に表示可能な内容が現れませんでした。ページまたは描画がWebView（%1$s）と互換性がない可能性があります。WebViewを更新するか、互換性のあるページを使用してください。</string>
+    <string name="web_engine_title">WebViewの互換性確認</string>
+    <string name="web_engine_old">エンジンが古いか識別できません。現在のダッシュボードのJavaScript構文にはChromium 80以降が必要ですが、完全な互換性を保証するものではありません。テレビメーカーまたはシステムストアから更新してください。古い互換ページは読み込みを試せます。</string>
+    <string name="web_engine_missing">利用可能なWebViewが見つかりません。テレビの設定で有効化または更新するか、メーカーにお問い合わせください。</string>
+    <string name="web_system_settings">システム設定を開く</string>
+    <string name="web_try_anyway">読み込みを試す</string>
+    <string name="web_settings_unavailable">このテレビには該当する設定画面がありません。</string>
 </resources>

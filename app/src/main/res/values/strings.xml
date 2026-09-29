@@ -4,4 +4,12 @@
     <string name="default_product_name" translatable="false">KioskRelay</string>
     <string name="default_offline_message">Network unavailable. Reconnecting…</string>
     <string name="brand_default_error_message">The webpage is temporarily unavailable. Please try again.</string>
+    <string name="web_load_timeout">Webpage loading timed out after 30 seconds. Check the URL and TV network. WebView: %1$s.</string>
+    <string name="web_blank_timeout">No displayable webpage content appeared within 30 seconds. The webpage or rendering may be incompatible with TV WebView (%1$s). Update the system WebView or use a compatible webpage.</string>
+    <string name="web_engine_title">WebView compatibility check</string>
+    <string name="web_engine_old">This engine is old or could not be identified. The current dashboard uses JavaScript features requiring Chromium 80 or later; this minimum does not guarantee full compatibility. Update through the TV manufacturer or system app store. You may still try loading older compatible webpages.</string>
+    <string name="web_engine_missing">No usable system WebView was found. Enable or update WebView using the TV system settings or contact the manufacturer.</string>
+    <string name="web_system_settings">Open system settings</string>
+    <string name="web_try_anyway">Try loading anyway</string>
+    <string name="web_settings_unavailable">The TV does not provide this settings entry.</string>
 </resources>
